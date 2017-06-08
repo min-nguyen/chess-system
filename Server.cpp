@@ -14,13 +14,13 @@
 #define BACKLOG 10
 #define BUF_LEN (2 << 16)
 
-void viewhostname(){
+void printhostname(){
 	char hostname[20];
 	gethostname(hostname, 20);
 	printf("Host name : %s\n\n", hostname);
 }
 
-void viewpeerinfo(struct sockaddr* peer_sockaddr, uint* peer_addrlen){
+void printpeerinfo(struct sockaddr* peer_sockaddr, uint* peer_addrlen){
 	void *addr, *port;
 	char* ipver;
 	char ipstr[INET6_ADDRSTRLEN];
@@ -64,7 +64,6 @@ int main(int argc, char *argv[])
 	struct sockaddr_storage *client_addresses;
 	int* sockfd_listener = (int*) malloc(sizeof(int));	//Points to socket descriptor
 	void* buffer = malloc(BUF_LEN);
-	//char ipstr[INET6_ADDRSTRLEN];
 
 	// Initialise addrinfo restrictions
 	memset(&hints, 0, sizeof hints);
@@ -72,24 +71,32 @@ int main(int argc, char *argv[])
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;     // fill in my IP for me
 
+	// Set up server
 	createlistener(hints, res, sockfd_listener);
+	printhostname();
+
+	// Set server to listening mode
 	listen(*sockfd_listener, BACKLOG);
 	std::cout << "Waiting for connection\n";
 
-
-	struct sockaddr* peer_sockaddr = (struct sockaddr*) malloc(sizeof(struct sockaddr));
-	uint* peer_addrlen = (uint*) malloc(sizeof(uint));
-
-	viewhostname();
+	// Allocate empty peer fields for future storage of connected clients
+	struct sockaddr* 	peer_sockaddr = (struct sockaddr*) malloc(sizeof(struct sockaddr));
+	uint* 						peer_addrlen 	= (uint*) malloc(sizeof(uint));
+	int								peer_sockfd		= -1;
 
 	while(1){
-		accept(*sockfd_listener, (struct sockaddr*) &client_addresses, (socklen_t*) sizeof(struct sockaddr_storage));
-
+		//Accept and set socket descriptor for new client
+	  peer_sockfd =	accept(*sockfd_listener, (struct sockaddr*) &client_addresses, (socklen_t*) sizeof(struct sockaddr_storage));
 		std::cout << "New client connected\n";
-		getpeername(*sockfd_listener, peer_sockaddr, peer_addrlen);
-		viewpeerinfo(peer_sockaddr, peer_addrlen);
 
-		recv(*sockfd_listener, buffer, BUF_LEN, 0);
+		//Get struct sockaddr and int addrlen of the client with the corresponding socket descriptor
+		getpeername(peer_sockfd, peer_sockaddr, peer_addrlen);
+
+		//Print
+		printpeerinfo(peer_sockaddr, peer_addrlen);
+
+		//Receive
+		recv(peer_sockfd, buffer, BUF_LEN, 0);
 	}
 	return 0;
 }
