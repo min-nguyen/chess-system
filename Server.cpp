@@ -13,6 +13,24 @@
 #define BACKLOG 10
 #define BUF_LEN (2 << 8)
 
+void viewpeerinfo(struct sockaddr* peer_sockaddr, uint* peer_addrlen){
+	void *addr, *port;
+	char* ipver;
+	if (peer_sockaddr->sa_family == AF_INET) { // IPv4
+        struct sockaddr_in *ipv4_socket = (struct sockaddr_in *) peer_sockaddr;
+        addr = &(ipv4_socket->sin_addr);
+        ipver = (char*) "IPv4";
+				port = &(ipv4_socket->sin_port);
+  }
+	else { // IPv6
+        struct sockaddr_in6 *ipv6_socket = (struct sockaddr_in6 *) peer_sockaddr;
+        addr = &(ipv6_socket->sin6_addr);
+        ipver = (char*) "IPv6";
+				port = &(ipv6_socket->sin6_port);
+  }
+	std::cout << addr << " " << ipver << " " << port << "\n";
+}
+
 //Create addrinfo and initialise 'res' and bind 'sockfd_listener'
 int createlistener(struct addrinfo hints, struct addrinfo* res, int* sockfd_listener){
 	int err_status, optval = 1;
@@ -45,11 +63,17 @@ int main(int argc, char *argv[])
 	createlistener(hints, res, sockfd_listener);
 	listen(*sockfd_listener, BACKLOG);
 
-
+	struct sockaddr* peer_sockaddr;
+	uint* peer_addrlen;
 	while(1){
 		accept(*sockfd_listener, (struct sockaddr*) &client_addresses, (socklen_t*) sizeof(struct sockaddr_storage));
-		std::cout << "hi\n";
-		std::cout << recv(*sockfd_listener, buffer, BUF_LEN, 0) << "\n";
+
+		std::cout << "New client connected\n";
+		getpeername(*sockfd_listener, peer_sockaddr, peer_addrlen);
+	//	viewpeerinfo(peer_sockaddr, peer_addrlen);
+
+
+		recv(*sockfd_listener, buffer, BUF_LEN, 0);
 	}
 	return 0;
 }
