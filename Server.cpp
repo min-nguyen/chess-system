@@ -44,7 +44,7 @@ void printpeerinfo(struct sockaddr* peer_sockaddr, uint* peer_addrlen){
 	std::cout << ipstr << " " << ipver << "        	 " << port << "  " << peer_addrlen << "\n";
 }
 
-void logclient(int sockfd_clients[BACKLOG], int sockfd_newclient){
+void log_client(int sockfd_clients[BACKLOG], int sockfd_newclient){
 	for(int i = 0; i < BACKLOG; i++){
 		if(!sockfd_clients[i]){
 			sockfd_clients[i] = sockfd_newclient;
@@ -81,22 +81,27 @@ void receive_client(int client_sockfd, char* buffer){
 	}
 }
 
+//Pass everything by reference
 void accept_client(	int* client_sockfd,
 										int* server_sockfd,
 										struct sockaddr_storage* client_addresses,
-										socklen_t addr_size){
+										socklen_t* addr_size){
 	if ( (*client_sockfd =	accept(*server_sockfd,
-																(struct sockaddr*) &(*client_addresses),
-																 &addr_size)) < 0){
+																(struct sockaddr*) 	&(*client_addresses),
+																 										&(*addr_size))) < 0){
 		perror("Server - accepting client failed\n");
 		exit(EXIT_FAILURE);
 	}
-	std::cout << "New client connected with sockfd " << *client_sockfd << " \n" << " mem of storage is " << &(*client_addresses) << "\n";
+	std::cout << "New client connected with sockfd " << *client_sockfd << "\n";
+}
+
+void dos(int& y){
+
 }
 
 int main(int argc, char *argv[])
 {
-	struct addrinfo hints, *res;	//hints = specifications,	res = addrinfo pointer
+	struct addrinfo hints, *addrinfo_server;	//hints = specifications,	res = addrinfo pointer
 	struct sockaddr_storage client_addresses;
 	socklen_t addr_size = sizeof client_addresses;
 	int sockfd_server;;	//Points to socket descriptor
@@ -109,25 +114,24 @@ int main(int argc, char *argv[])
 	hints.ai_flags = AI_PASSIVE;     // fill in my IP for me
 
 	// Set up server
-	initialiselistener(hints, res, &sockfd_server);
+	initialiselistener(hints, addrinfo_server, &sockfd_server);
 	printhostname();
 
 	// Allocate empty peer fields for future storage of connected clients
-	struct sockaddr* 	peer_sockaddr = (struct sockaddr*) malloc(sizeof(struct sockaddr));
-	uint* 						peer_addrlen 	= (uint*) malloc(sizeof(uint));
-	int								peer_sockfd		= -1;
+	struct sockaddr* 	client_sockaddr = (struct sockaddr*) malloc(sizeof(struct sockaddr));
+	uint* 						client_addrlen 	= (uint*) malloc(sizeof(uint));
+	int								client_sockfd		= -1;
 	std::cout << "storage mem #1 : " << &client_addresses << "\n";
 	while(1){
 		//Accept using listener sockfd and set socketfd for new client
-		accept_client(&peer_sockfd, &sockfd_server, &client_addresses, addr_size);
+		accept_client(&client_sockfd, &sockfd_server, &client_addresses, &addr_size);
 		//Get struct sockaddr and int addrlen of the client with the corresponding socket descriptor
-		getpeername(peer_sockfd, peer_sockaddr, peer_addrlen);
+		getpeername(client_sockfd, client_sockaddr, client_addrlen);
+		printpeerinfo(client_sockaddr, client_addrlen);
 		//Keep track of client sockfd
-		logclient(sockfd_clients, peer_sockfd);
-		//Print
-		printpeerinfo(peer_sockaddr, peer_addrlen);
+		log_client(sockfd_clients, client_sockfd);
 		//Receive
-		receive_client(peer_sockfd, buffer);
+		receive_client(client_sockfd, buffer);
 		printf("Message: %s \n", buffer);
 	}
 	return 0;
