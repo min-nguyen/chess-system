@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <iostream>
+#include <vector>
 
 #define MY_PORT "4006"
 #define BACKLOG 10
@@ -43,6 +44,15 @@ void printpeerinfo(struct sockaddr* peer_sockaddr, uint* peer_addrlen){
 	std::cout << ipstr << " " << ipver << "        	 " << port << "  " << peer_addrlen << "\n";
 }
 
+void logclient(int sockfd_clients[BACKLOG], int sockfd_newclient){
+	for(int i = 0; i < BACKLOG; i++){
+		if(!sockfd_clients[i]){
+			sockfd_clients[i] = sockfd_newclient;
+			return;
+		}
+	}
+}
+
 //Create addrinfo and initialise 'res' and bind 'sockfd_listener'
 int createlistener(struct addrinfo hints, struct addrinfo* res, int* sockfd_listener){
 	int err_status, optval = 1;
@@ -61,10 +71,11 @@ int createlistener(struct addrinfo hints, struct addrinfo* res, int* sockfd_list
 int main(int argc, char *argv[])
 {
 	struct addrinfo hints, *res;	//hints = specifications,	res = addrinfo pointer
-	struct sockaddr_storage *client_addresses;
+	struct sockaddr_storage client_addresses;
+	socklen_t addr_size;
 	int* sockfd_listener = (int*) malloc(sizeof(int));	//Points to socket descriptor
+	int sockfd_clients[BACKLOG];
 	void* buffer = malloc(BUF_LEN);
-
 	// Initialise addrinfo restrictions
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC; // AF_INET or AF_INET6 to force version
@@ -85,18 +96,30 @@ int main(int argc, char *argv[])
 	int								peer_sockfd		= -1;
 
 	while(1){
-		//Accept and set socket descriptor for new client
-	  peer_sockfd =	accept(*sockfd_listener, (struct sockaddr*) &client_addresses, (socklen_t*) sizeof(struct sockaddr_storage));
-		std::cout << "New client connected\n";
+		//Accept using listener sockfd and set socketfd for new client
+		addr_size = sizeof client_addresses;
+		if ( (peer_sockfd =	accept(*sockfd_listener, (struct sockaddr*) &client_addresses,
+																	&addr_size)) < 0){
+			perror("Server - accepting client failed\n");
+			exit(EXIT_FAILURE);
+		}
+
+		std::cout << "New client connected with sockfd " << peer_sockfd << " \n";
 
 		//Get struct sockaddr and int addrlen of the client with the corresponding socket descriptor
 		getpeername(peer_sockfd, peer_sockaddr, peer_addrlen);
-
+		//Keep track of client sockfd
+		logclient(sockfd_clients, peer_sockfd);
 		//Print
 		printpeerinfo(peer_sockaddr, peer_addrlen);
 
 		//Receive
-		recv(peer_sockfd, buffer, BUF_LEN, 0);
+		if ( (recv(peer_sockfd, buffer, BUF_LEN, 0)) < 0){
+			perror("Server - recv failed\n");
+			exit(EXIT_FAILURE);
+		}
+	//	std::cout << "buffer size : " << TEMP_FAILURE_RETRY(recv(peer_sockfd, buffer, BUF_LEN, 0)) << "\n";
+		std::cout << "message : " << *((char*) buffer) << "\n";
 	}
 	return 0;
 }
