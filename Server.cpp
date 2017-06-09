@@ -54,26 +54,52 @@ void logclient(int sockfd_clients[BACKLOG], int sockfd_newclient){
 }
 
 //Create addrinfo and initialise 'res' and bind 'sockfd_listener'
-int createlistener(struct addrinfo hints, struct addrinfo* res, int* sockfd_listener){
+int initialiselistener(struct addrinfo hints, struct addrinfo* res, int* sockfd_listener){
 	int err_status, optval = 1;
+	//Set res to point to server addrinfo
 	if ((err_status = getaddrinfo(NULL, MY_PORT, &hints, &res ) != 0)) {
 		fprintf(stderr, "listener creation failed: %s\n", gai_strerror(err_status));
 		return 2;
 	}
+	//Create sockfd for the server
 	*sockfd_listener = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 	setsockopt(*sockfd_listener, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+	//Bind the server's sockfd to the server's addrinfo
 	if ((err_status = bind(*sockfd_listener, res->ai_addr, res->ai_addrlen)) < 0){
 		perror("Server - bind() failed");
 		exit(EXIT_FAILURE);
 	}
+	//Set server to listen on that sockfd
+	listen(*sockfd_listener, BACKLOG);
+	std::cout << "Waiting for connection\n";
+}
+
+void receive_client(int client_sockfd, char* buffer){
+	if ( (recv(client_sockfd, buffer, BUF_LEN, 0)) < 0){
+		perror("Server - recv failed\n");
+		exit(EXIT_FAILURE);
+	}
+}
+
+void accept_client(	int* client_sockfd,
+										int* server_sockfd,
+										struct sockaddr_storage* client_addresses,
+										socklen_t addr_size){
+	if ( (*client_sockfd =	accept(*server_sockfd,
+																(struct sockaddr*) &(*client_addresses),
+																 &addr_size)) < 0){
+		perror("Server - accepting client failed\n");
+		exit(EXIT_FAILURE);
+	}
+	std::cout << "New client connected with sockfd " << *client_sockfd << " \n" << " mem of storage is " << &(*client_addresses) << "\n";
 }
 
 int main(int argc, char *argv[])
 {
 	struct addrinfo hints, *res;	//hints = specifications,	res = addrinfo pointer
 	struct sockaddr_storage client_addresses;
-	socklen_t addr_size;
-	int* sockfd_listener = (int*) malloc(sizeof(int));	//Points to socket descriptor
+	socklen_t addr_size = sizeof client_addresses;
+	int sockfd_server;;	//Points to socket descriptor
 	int sockfd_clients[BACKLOG];
 	char buffer[BUF_LEN];
 	// Initialise addrinfo restrictions
@@ -83,42 +109,25 @@ int main(int argc, char *argv[])
 	hints.ai_flags = AI_PASSIVE;     // fill in my IP for me
 
 	// Set up server
-	createlistener(hints, res, sockfd_listener);
+	initialiselistener(hints, res, &sockfd_server);
 	printhostname();
-
-	// Set server to listening mode
-	listen(*sockfd_listener, BACKLOG);
-	std::cout << "Waiting for connection\n";
 
 	// Allocate empty peer fields for future storage of connected clients
 	struct sockaddr* 	peer_sockaddr = (struct sockaddr*) malloc(sizeof(struct sockaddr));
 	uint* 						peer_addrlen 	= (uint*) malloc(sizeof(uint));
 	int								peer_sockfd		= -1;
-
+	std::cout << "storage mem #1 : " << &client_addresses << "\n";
 	while(1){
 		//Accept using listener sockfd and set socketfd for new client
-		addr_size = sizeof client_addresses;
-		if ( (peer_sockfd =	accept(*sockfd_listener, (struct sockaddr*) &client_addresses,
-																	&addr_size)) < 0){
-			perror("Server - accepting client failed\n");
-			exit(EXIT_FAILURE);
-		}
-
-		std::cout << "New client connected with sockfd " << peer_sockfd << " \n";
-
+		accept_client(&peer_sockfd, &sockfd_server, &client_addresses, addr_size);
 		//Get struct sockaddr and int addrlen of the client with the corresponding socket descriptor
 		getpeername(peer_sockfd, peer_sockaddr, peer_addrlen);
 		//Keep track of client sockfd
 		logclient(sockfd_clients, peer_sockfd);
 		//Print
 		printpeerinfo(peer_sockaddr, peer_addrlen);
-
 		//Receive
-		if ( (recv(peer_sockfd, buffer, BUF_LEN, 0)) < 0){
-			perror("Server - recv failed\n");
-			exit(EXIT_FAILURE);
-		}
-	//	std::cout << "buffer size : " << TEMP_FAILURE_RETRY(recv(peer_sockfd, buffer, BUF_LEN, 0)) << "\n";
+		receive_client(peer_sockfd, buffer);
 		printf("Message: %s \n", buffer);
 	}
 	return 0;
