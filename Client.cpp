@@ -38,8 +38,7 @@ int main(int argc, char *argv[])
 
   clientconnect(hints, res, sockfd);
 
-  char* message = (char*) "hi";
-  send(*sockfd, &message, (int) sizeof(message), 0);
+  send(*sockfd, "hello", (int) sizeof("hello"), 0);
   while(1){}
 	return 0;
 }

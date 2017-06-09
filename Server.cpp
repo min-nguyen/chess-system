@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
 	socklen_t addr_size;
 	int* sockfd_listener = (int*) malloc(sizeof(int));	//Points to socket descriptor
 	int sockfd_clients[BACKLOG];
-	void* buffer = malloc(BUF_LEN);
+	char buffer[BUF_LEN];
 	// Initialise addrinfo restrictions
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC; // AF_INET or AF_INET6 to force version
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 	//	std::cout << "buffer size : " << TEMP_FAILURE_RETRY(recv(peer_sockfd, buffer, BUF_LEN, 0)) << "\n";
-		std::cout << "message : " << *((char*) buffer) << "\n";
+		printf("Message: %s \n", buffer);
 	}
 	return 0;
 }
