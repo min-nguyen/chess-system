@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <errno.h>
 #include <netdb.h>
 #include <unistd.h>
@@ -74,10 +75,14 @@ int initialiselistener(struct addrinfo hints, struct addrinfo* res, int* sockfd_
 	std::cout << "Waiting for connection\n";
 }
 
-void receive_client(int client_sockfd, char* buffer){
-	if ( (recv(client_sockfd, buffer, BUF_LEN, 0)) < 0){
-		perror("Server - recv failed\n");
-		exit(EXIT_FAILURE);
+int receive_client(int client_sockfd, char* buffer){
+	int n = recv(client_sockfd, buffer, BUF_LEN, 0);
+	switch(n){
+		case (-1) : perror("Server - recv failed\n");
+								exit(EXIT_FAILURE);
+								break;
+	  case (0)	: return 0;
+		default		: return 1;
 	}
 }
 
@@ -101,12 +106,17 @@ void dos(int& y){
 
 int main(int argc, char *argv[])
 {
+	fd_set connections_fd, reads_fd;
+	int max_fd;
+
 	struct addrinfo hints, *addrinfo_server;	//hints = specifications,	res = addrinfo pointer
 	struct sockaddr_storage client_addresses;
+
 	socklen_t addr_size = sizeof client_addresses;
-	int sockfd_server;;	//Points to socket descriptor
+	int sockfd_server;	//Points to socket descriptor
 	int sockfd_clients[BACKLOG];
 	char buffer[BUF_LEN];
+
 	// Initialise addrinfo restrictions
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC; // AF_INET or AF_INET6 to force version
@@ -115,24 +125,85 @@ int main(int argc, char *argv[])
 
 	// Set up server
 	initialiselistener(hints, addrinfo_server, &sockfd_server);
+	FD_ZERO(&connections_fd);
+	FD_ZERO(&reads_fd);
+	FD_SET(sockfd_server, &connections_fd);
+
+	max_fd = sockfd_server;
 	printhostname();
 
 	// Allocate empty peer fields for future storage of connected clients
 	struct sockaddr* 	client_sockaddr = (struct sockaddr*) malloc(sizeof(struct sockaddr));
 	uint* 						client_addrlen 	= (uint*) malloc(sizeof(uint));
 	int								client_sockfd		= -1;
-	std::cout << "storage mem #1 : " << &client_addresses << "\n";
+
 	while(1){
-		//Accept using listener sockfd and set socketfd for new client
-		accept_client(&client_sockfd, &sockfd_server, &client_addresses, &addr_size);
-		//Get struct sockaddr and int addrlen of the client with the corresponding socket descriptor
-		getpeername(client_sockfd, client_sockaddr, client_addrlen);
-		printpeerinfo(client_sockaddr, client_addrlen);
-		//Keep track of client sockfd
-		log_client(sockfd_clients, client_sockfd);
-		//Receive
-		receive_client(client_sockfd, buffer);
-		printf("Message: %s \n", buffer);
+		reads_fd = connections_fd;
+		//Updates 'reads_fd' to indicate which socket file descriptors are ready to read
+		if (select(max_fd + 1, &reads_fd, NULL, NULL, NULL) == -1) {
+            perror("select");
+            exit(EXIT_FAILURE);
+    }
+		for(int i = 0; i < max_fd + 1; i++){
+				if(FD_ISSET(i, &reads_fd)){
+					if (i == sockfd_server){
+						accept_client(&client_sockfd, &sockfd_server, &client_addresses, &addr_size);
+						FD_SET(client_sockfd, &connections_fd);
+						max_fd = (max_fd < client_sockfd) ? client_sockfd : max_fd;
+					}
+					else{
+						if(!receive_client(i, buffer)){
+							close(i);
+							FD_CLR(i, &connections_fd);
+						}
+						else{
+							printf("Message: %s \n", buffer);
+						}
+					}
+				}
+			}
 	}
+	// while(1){
+	// 	//Accept using listener sockfd and set socketfd for new client
+	// 	accept_client(&client_sockfd, &sockfd_server, &client_addresses, &addr_size);
+	// 	//Get struct sockaddr and int addrlen of the client with the corresponding socket descriptor
+	// 	getpeername(client_sockfd, client_sockaddr, client_addrlen);
+	// 	printpeerinfo(client_sockaddr, client_addrlen);
+	// 	//Keep track of client sockfd
+	// 	log_client(sockfd_clients, client_sockfd);
+	// 	//Receive
+	// 	receive_client(client_sockfd, buffer);
+	// 	printf("Message: %s \n", buffer);
+	// }
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//

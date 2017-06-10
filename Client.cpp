@@ -10,12 +10,13 @@
 #include <iostream>
 
 #define SERVER_PORT "4006"
+#define SERVER_IP "127.0.0.1"
 #define BACKLOG 10
 
 //Create client & get server socket
 void clientconnect(struct addrinfo hints, struct addrinfo* res, int* sockfd){
   int err_status;
-	if ( ((err_status = getaddrinfo("127.0.0.1", SERVER_PORT, &hints, &res )) != 0)) {
+	if ( ((err_status = getaddrinfo(SERVER_IP, SERVER_PORT, &hints, &res )) != 0)) {
 		fprintf(stderr, "listener creation failed: %s\n", gai_strerror(err_status));
 		exit(EXIT_FAILURE);
 	}
@@ -37,8 +38,13 @@ int main(int argc, char *argv[])
 	hints.ai_flags = AI_PASSIVE;     // fill in my IP for me
 
   clientconnect(hints, res, sockfd);
-
-  send(*sockfd, "hello", (int) sizeof("hello"), 0);
-  while(1){}
+  printf("connected to port %s at ip %s\n", SERVER_PORT, SERVER_IP);
+  std::string msgstr;
+  char msg[50];
+  while(1){
+    std::getline(std::cin, msgstr);
+    strcpy(msg, msgstr.c_str());
+    send(*sockfd, msg, (int) sizeof(msg), 0);
+  }
 	return 0;
 }
