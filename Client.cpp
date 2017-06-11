@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <thread>
 #include <map>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -31,17 +32,29 @@ void clientconnect(struct addrinfo hints, struct addrinfo* res, int& sockfd){
   }
 }
 
-int receive_server(int& server_sockfd, char* buffer){
+void receive_server(int& server_sockfd, char* buffer){
+  while(1){
+  	int n = recv(server_sockfd, buffer, BUF_LEN, 0) ;
+    printf("%s \n", buffer);
+  	switch(n){
+  		case (-1) : perror("Client - recv failed\n");
+  								exit(EXIT_FAILURE);
+  								break;
+  	  case (0)	: perror("Client - Server disconnected");
+                  break;
+  		default		: break;
+  	}
+  }
+}
 
-	int n = recv(server_sockfd, buffer, BUF_LEN, 0) ;
-  printf("%s \n", buffer);
-	switch(n){
-		case (-1) : perror("Client - recv failed\n");
-								exit(EXIT_FAILURE);
-								break;
-	  case (0)	: return 0;
-		default		: return 1;
-	}
+void send_server(int& server_sockfd){
+  char msg[50];
+  std::string msgstr;
+  while(1){
+    std::getline(std::cin, msgstr);
+    strcpy(msg, msgstr.c_str());
+    send(server_sockfd, msg, (int) sizeof(msg), 0);
+  }
 }
 
 int main(int argc, char *argv[])
@@ -58,15 +71,15 @@ int main(int argc, char *argv[])
 
   clientconnect(hints, server_addrinfo, server_sockfd);
   printf("connected to port %s at ip %s\n", SERVER_PORT, SERVER_IP);
-  std::string msgstr;
-  char msg[50];
-  while(1){
-    receive_server(server_sockfd, buffer);
-    printf("server sock fd : %d\n", server_sockfd);
-    std::getline(std::cin, msgstr);
-    strcpy(msg, msgstr.c_str());
-    send(server_sockfd, msg, (int) sizeof(msg), 0);
-    printf("sent\n");
-  }
+
+  //The arguments to the thread function are moved or copied by value.
+  //If a reference argument needs to be passed to the thread function, it has to be wrapped (e.g. with std::ref or std::cref).
+
+  std::thread receiver(receive_server, std::ref(server_sockfd), buffer);
+  std::thread sender(send_server, std::ref(server_sockfd));
+
+  receiver.join();
+  sender.join();
 	return 0;
+
 }
