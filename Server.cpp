@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <map>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -100,13 +101,14 @@ void accept_client(	int* client_sockfd,
 	std::cout << "New client connected with sockfd " << *client_sockfd << "\n";
 }
 
-void dos(int& y){
-
+void request_clientname(std::map<int, std::string> client_names, int sockfd_client){
+	send(sockfd_client, "Please enter your name", sizeof("Please enter your name"), 0);
 }
 
 int main(int argc, char *argv[])
 {
 	fd_set connections_fd, reads_fd;
+	std::map<int, std::string> client_names;
 	int max_fd;
 
 	struct addrinfo hints, *addrinfo_server;	//hints = specifications,	res = addrinfo pointer
@@ -150,6 +152,7 @@ int main(int argc, char *argv[])
 						accept_client(&client_sockfd, &sockfd_server, &client_addresses, &addr_size);
 						FD_SET(client_sockfd, &connections_fd);
 						max_fd = (max_fd < client_sockfd) ? client_sockfd : max_fd;
+						send(client_sockfd, "Please enter your name", sizeof("Please enter your name"), 0);
 					}
 					else{
 						if(!receive_client(i, buffer)){
@@ -157,7 +160,12 @@ int main(int argc, char *argv[])
 							FD_CLR(i, &connections_fd);
 						}
 						else{
-							printf("Message: %s \n", buffer);
+							if(client_names.find(i) != client_names.end())
+								std::cout << client_names[i] << ": " << buffer << "\n"; //printf("%s: %s \n", client_names[i], buffer);
+							else{
+								std::cout << "New client : " << buffer << "\n";
+								client_names[i] = buffer;
+							}
 						}
 					}
 				}
