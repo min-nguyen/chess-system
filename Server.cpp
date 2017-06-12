@@ -46,14 +46,7 @@ void printpeerinfo(struct sockaddr* peer_sockaddr, uint* peer_addrlen){
 	std::cout << ipstr << " " << ipver << "        	 " << port << "  " << peer_addrlen << "\n";
 }
 
-void log_client(int sockfd_clients[BACKLOG], int sockfd_newclient){
-	for(int i = 0; i < BACKLOG; i++){
-		if(!sockfd_clients[i]){
-			sockfd_clients[i] = sockfd_newclient;
-			return;
-		}
-	}
-}
+
 
 //Create addrinfo and initialise 'res' and bind 'sockfd_listener'
 int initialiselistener(struct addrinfo hints, struct addrinfo* res, int* sockfd_listener){
@@ -107,16 +100,18 @@ void request_clientname(std::map<int, std::string> client_names, int sockfd_clie
 
 int main(int argc, char *argv[])
 {
+	// 'Select' variables
 	fd_set connections_fd, reads_fd;
-	std::map<int, std::string> client_names;
 	int max_fd;
 
-	struct addrinfo hints, *addrinfo_server;	//hints = specifications,	res = addrinfo pointer
+	// Client storage
+	std::map<int, std::string> client_names;
 	struct sockaddr_storage client_addresses;
-
 	socklen_t addr_size = sizeof client_addresses;
+
+	// Server variables
+	struct addrinfo hints, *addrinfo_server;
 	int sockfd_server;	//Points to socket descriptor
-	int sockfd_clients[BACKLOG];
 	char* buffer = (char*) malloc(sizeof(char));
 
 	// Initialise addrinfo restrictions
@@ -130,11 +125,10 @@ int main(int argc, char *argv[])
 	FD_ZERO(&connections_fd);
 	FD_ZERO(&reads_fd);
 	FD_SET(sockfd_server, &connections_fd);
-
 	max_fd = sockfd_server;
 	printhostname();
 
-	// Allocate empty peer fields for future storage of connected clients
+	// Allocate empty peer fields for temporary storage of connected clients
 	struct sockaddr* 	client_sockaddr = (struct sockaddr*) malloc(sizeof(struct sockaddr));
 	uint* 						client_addrlen 	= (uint*) malloc(sizeof(uint));
 	int								client_sockfd		= -1;
@@ -177,18 +171,6 @@ int main(int argc, char *argv[])
 				}
 			}
 	}
-	// while(1){
-	// 	//Accept using listener sockfd and set socketfd for new client
-	// 	accept_client(&client_sockfd, &sockfd_server, &client_addresses, &addr_size);
-	// 	//Get struct sockaddr and int addrlen of the client with the corresponding socket descriptor
-	// 	getpeername(client_sockfd, client_sockaddr, client_addrlen);
-	// 	printpeerinfo(client_sockaddr, client_addrlen);
-	// 	//Keep track of client sockfd
-	// 	log_client(sockfd_clients, client_sockfd);
-	// 	//Receive
-	// 	receive_client(client_sockfd, buffer);
-	// 	printf("Message: %s \n", buffer);
-	// }
 	return 0;
 }
 
