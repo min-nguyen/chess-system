@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
 	socklen_t addr_size = sizeof client_addresses;
 	int sockfd_server;	//Points to socket descriptor
 	int sockfd_clients[BACKLOG];
-	char buffer[BUF_LEN];
+	char* buffer = (char*) malloc(sizeof(char));
 
 	// Initialise addrinfo restrictions
 	memset(&hints, 0, sizeof hints);
@@ -146,6 +146,7 @@ int main(int argc, char *argv[])
             perror("select");
             exit(EXIT_FAILURE);
     }
+
 		for(int i = 0; i < max_fd + 1; i++){
 				if(FD_ISSET(i, &reads_fd)){
 					if (i == sockfd_server){
@@ -160,11 +161,15 @@ int main(int argc, char *argv[])
 							FD_CLR(i, &connections_fd);
 						}
 						else{
+							std::string strng(buffer);
 							if(client_names.find(i) != client_names.end())
-								std::cout << client_names[i] << ": " << buffer << "\n"; //printf("%s: %s \n", client_names[i], buffer);
+								strng = client_names[i] + ": " + strng + "\n";
 							else{
-								std::cout << "New client : " << buffer << "\n";
+								strng = "New client : " + strng + "\n";
 								client_names[i] = buffer;
+							}
+							for(std::map<int, std::string>::iterator it=client_names.begin(); it!=client_names.end(); ++it){
+									send(it->first, strng.c_str(), strlen(strng.c_str()) + 1, 0);
 							}
 						}
 					}

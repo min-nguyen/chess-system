@@ -18,6 +18,9 @@
 #define SERVER_IP "127.0.0.1"
 #define BACKLOG 10
 #define BUF_LEN (2 << 16)
+
+static volatile int semaphore = 1;
+
 //Create client & get server socket
 void clientconnect(struct addrinfo hints, struct addrinfo* res, int& sockfd){
   int err_status;
@@ -32,22 +35,27 @@ void clientconnect(struct addrinfo hints, struct addrinfo* res, int& sockfd){
   }
 }
 
-void receive_server(int& server_sockfd, char* buffer){
+void receive_server(int server_sockfd){
+  char buffer[50];
   while(1){
+    printf("buffer before: %s\n", buffer);
   	int n = recv(server_sockfd, buffer, BUF_LEN, 0) ;
-    printf("%s \n", buffer);
+    printf("size of buffer :%d size of buflen :%d\n", sizeof(buffer), BUF_LEN);
+    printf("buffer after %s \n", buffer);
+    *buffer = {};
   	switch(n){
   		case (-1) : perror("Client - recv failed\n");
   								exit(EXIT_FAILURE);
   								break;
   	  case (0)	: perror("Client - Server disconnected");
+                  return;
                   break;
   		default		: break;
   	}
   }
 }
 
-void send_server(int& server_sockfd){
+void send_server(int server_sockfd){
   char msg[50];
   std::string msgstr;
   while(1){
@@ -62,7 +70,7 @@ int main(int argc, char *argv[])
 	struct addrinfo hints, *server_addrinfo;	//hints = specifications,	res = addrinfo pointer
   int server_sockfd;
 
-  char buffer[50];
+
 	// Initialise addrinfo restrictions
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC; // AF_INET or AF_INET6 to force version
@@ -75,8 +83,8 @@ int main(int argc, char *argv[])
   //The arguments to the thread function are moved or copied by value.
   //If a reference argument needs to be passed to the thread function, it has to be wrapped (e.g. with std::ref or std::cref).
 
-  std::thread receiver(receive_server, std::ref(server_sockfd), buffer);
-  std::thread sender(send_server, std::ref(server_sockfd));
+  std::thread receiver(receive_server, server_sockfd);
+  std::thread sender(send_server, server_sockfd);
 
   receiver.join();
   sender.join();
