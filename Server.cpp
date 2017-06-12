@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
 						accept_client(&client_sockfd, &sockfd_server, &client_addresses, &addr_size);
 						FD_SET(client_sockfd, &connections_fd);
 						max_fd = (max_fd < client_sockfd) ? client_sockfd : max_fd;
-						send(client_sockfd, "Please enter your name", sizeof("Please enter your name"), 0);
+						send(client_sockfd, "Please enter your name\n", sizeof("Please enter your name\n"), 0);
 					}
 					else{
 						if(!receive_client(i, buffer)){
@@ -171,6 +171,7 @@ int main(int argc, char *argv[])
 							for(std::map<int, std::string>::iterator it=client_names.begin(); it!=client_names.end(); ++it){
 									send(it->first, strng.c_str(), strlen(strng.c_str()) + 1, 0);
 							}
+							printf("%s", strng.c_str());
 						}
 					}
 				}

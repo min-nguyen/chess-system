@@ -38,11 +38,7 @@ void clientconnect(struct addrinfo hints, struct addrinfo* res, int& sockfd){
 void receive_server(int server_sockfd){
   char buffer[50];
   while(1){
-    printf("buffer before: %s\n", buffer);
   	int n = recv(server_sockfd, buffer, BUF_LEN, 0) ;
-    printf("size of buffer :%d size of buflen :%d\n", sizeof(buffer), BUF_LEN);
-    printf("buffer after %s \n", buffer);
-    *buffer = {};
   	switch(n){
   		case (-1) : perror("Client - recv failed\n");
   								exit(EXIT_FAILURE);
@@ -50,7 +46,9 @@ void receive_server(int server_sockfd){
   	  case (0)	: perror("Client - Server disconnected");
                   return;
                   break;
-  		default		: break;
+  		default		: printf("%s", buffer);
+                  *buffer = {};
+                  break;
   	}
   }
 }
