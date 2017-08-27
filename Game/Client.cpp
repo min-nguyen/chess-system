@@ -14,6 +14,7 @@
 #include <iostream>
 #include <vector>
 #include "Client.h"
+
 #define SERVER_PORT "4006"
 #define SERVER_IP "127.0.0.1"
 #define BACKLOG 10
@@ -38,7 +39,7 @@ void Client::clientconnect(struct addrinfo hints, struct addrinfo* res, int& soc
 void Client::receive_server(int server_sockfd, Client* client){
   char buffer[50];
   while(1){
-  	int n = recv(server_sockfd, buffer, BUF_LEN, 0) ;
+  	int n = recv(server_sockfd, buffer, BUF_LEN, 0);
   	switch(n){
   		case (-1) : perror("Client - recv failed\n");
   								exit(EXIT_FAILURE);
@@ -46,32 +47,52 @@ void Client::receive_server(int server_sockfd, Client* client){
   	  case (0)	: perror("Client - Server disconnected");
                   return;
                   break;
-  		default		: printf("%s", buffer);
-                  *buffer = {};
+      default		: printf("%s", buffer);
+                  for (char* p = buffer; *p != '\0'; p++){
+                    client->INbuffer.push(*p);
+                  }
                   break;
   	}
   }
 }
 
-void Client::checkBuffer(){
-  
-}
-
 void Client::send_server(int server_sockfd, Client* client){
   char msg[50];
   std::string msgstr; 
+  //Write name
+  std::getline(std::cin, msgstr);
+  strcpy(msg, msgstr.c_str());
+  send(server_sockfd, msg, (int) sizeof(msg), 0);
+  //Game input
   while(1){
-    std::getline(std::cin, msgstr);
-    strcpy(msg, msgstr.c_str());
-    send(server_sockfd, msg, (int) sizeof(msg), 0);
+    if(!(client->OUTbuffer.empty())){
+      char c = client->OUTbuffer.front();
+      client->OUTbuffer.pop();
+      send(server_sockfd, &c, sizeof(char), 0);
+    }
   }
 }
 
+char Client::inBuffer(){
+  if(!INbuffer.empty()){
+    char front = INbuffer.front();
+    INbuffer.pop();
+    return front;
+  }
+  else 
+    return '\0';
+}
+
+void Client::outBuffer(char c){
+  OUTbuffer.push(c);
+  std::cout << OUTbuffer.front() << std::flush;
+}
+ 
 void Client::run()
 {
 	struct addrinfo hints, *server_addrinfo;	//hints = specifications,	res = addrinfo pointer
   int server_sockfd;
-
+  std::cout << this << "\n" << std::flush;
 
 	// Initialise addrinfo restrictions
 	memset(&hints, 0, sizeof hints);

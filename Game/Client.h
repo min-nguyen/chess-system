@@ -1,14 +1,18 @@
 #include <stdio.h>
 #include <iostream>
 #include <SFML/Graphics.hpp>
+#include <queue>
 
 class Client {
+public:
+    Client(){std::cout << this << "\n" << std::flush;};
+    char inBuffer();
+    void outBuffer(char c);
+    void run();
 private:
-    Client(){};
     void clientconnect(struct addrinfo hints, struct addrinfo* res, int& sockfd);
     static void receive_server(int server_sockfd, Client* client);
     static void send_server(int server_sockfd, Client* client);
-    void run();
-    void checkBuffer();
-    char buffer[50];
+    std::queue<char> INbuffer;
+    std::queue<char> OUTbuffer;
 };
