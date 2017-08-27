@@ -75,19 +75,17 @@ int receive_client(int client_sockfd, char* buffer){
 		case (-1) : perror("Server - recv failed\n");
 								exit(EXIT_FAILURE);
 								break;
-	  case (0)	: return 0;
+	  	case (0)	: return 0;
 		default		: return 1;
 	}
 }
 
 //Pass everything by reference
 void accept_client(	int* client_sockfd,
-										int* server_sockfd,
-										struct sockaddr_storage* client_addresses,
-										socklen_t* addr_size){
-	if ( (*client_sockfd =	accept(*server_sockfd,
-																(struct sockaddr*) 	&(*client_addresses),
-																 										&(*addr_size))) < 0){
+					int* server_sockfd,
+					struct sockaddr_storage* client_addresses,
+					socklen_t* addr_size){
+	if ( (*client_sockfd =	accept(*server_sockfd, (struct sockaddr*) &(*client_addresses), &(*addr_size))) < 0){
 		perror("Server - accepting client failed\n");
 		exit(EXIT_FAILURE);
 	}
@@ -100,7 +98,7 @@ void request_clientname(std::map<int, std::string> client_names, int sockfd_clie
 
 int main(int argc, char *argv[])
 {
-	// 'Select' variables
+	// Create file descriptor sets, one for reading and one for updating the next read
 	fd_set connections_fd, reads_fd;
 	int max_fd;
 
@@ -124,6 +122,7 @@ int main(int argc, char *argv[])
 	initialiselistener(hints, addrinfo_server, &sockfd_server);
 	FD_ZERO(&connections_fd);
 	FD_ZERO(&reads_fd);
+	// Add server file descriptor to fd set
 	FD_SET(sockfd_server, &connections_fd);
 	max_fd = sockfd_server;
 	printhostname();
@@ -139,10 +138,12 @@ int main(int argc, char *argv[])
 		if (select(max_fd + 1, &reads_fd, NULL, NULL, NULL) == -1) {
             perror("select");
             exit(EXIT_FAILURE);
-    }
-
+    	}
+		//Iterate through client filedescriptors (ws connections)
 		for(int i = 0; i < max_fd + 1; i++){
+				//Server file descriptor (ws) receives new I/O operation
 				if(FD_ISSET(i, &reads_fd)){
+					//Fd for Server listener receives ws request
 					if (i == sockfd_server){
 						accept_client(&client_sockfd, &sockfd_server, &client_addresses, &addr_size);
 						FD_SET(client_sockfd, &connections_fd);
@@ -150,10 +151,13 @@ int main(int argc, char *argv[])
 						send(client_sockfd, "Please enter your name\n", sizeof("Please enter your name\n"), 0);
 					}
 					else{
+						//Client closed ws
 						if(!receive_client(i, buffer)){
+							std::cout << "Disconnected : " + client_names[i] << std::flush;
 							close(i);
 							FD_CLR(i, &connections_fd);
 						}
+						//Fd corresponding to client receives new I/O operation
 						else{
 							std::string strng(buffer);
 							if(client_names.find(i) != client_names.end())
