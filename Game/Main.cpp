@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 
     sf::Clock clock;
     sf::Time elapsedTime = clock.restart();
-    Char c("./SF.gif", window);
+    Char c("./SF.gif", &window);
 
     while (window.isOpen())
     {
