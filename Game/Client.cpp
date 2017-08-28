@@ -37,7 +37,7 @@ void Client::clientconnect(struct addrinfo hints, struct addrinfo* res, int& soc
 }
 
 void Client::receive_server(int server_sockfd, Client* client){
-  char buffer[50];
+  char buffer[50]; 
   while(1){
   	int n = recv(server_sockfd, buffer, BUF_LEN, 0);
   	switch(n){

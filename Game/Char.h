@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <SFML/Graphics.hpp>
-#include "SpriteSheet.cpp"
+#include "SpriteSheet.h"
 
 namespace CharState {
     enum STATE {
@@ -17,7 +17,7 @@ public:
     void debug(std::string s);
     sf::Sprite getCurrentSprite();
     void update(sf::Time elapsedTime);
-    void input(CharState::STATE st);
+    void updateState(CharState::STATE st);
     std::pair<float, float> position;
 protected:
     SpriteSheet spriteSheet;
