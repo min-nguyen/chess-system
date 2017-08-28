@@ -7,6 +7,7 @@ class Client {
 public:
     Client(){std::cout << this << "\n" << std::flush;};
     char inBuffer();
+    bool isEmpty();
     void outBuffer(char c);
     void run();
 private:

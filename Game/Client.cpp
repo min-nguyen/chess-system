@@ -47,9 +47,15 @@ void Client::receive_server(int server_sockfd, Client* client){
   	  case (0)	: perror("Client - Server disconnected");
                   return;
                   break;
-      default		: printf("%s", buffer);
-                  for (char* p = buffer; *p != '\0'; p++){
-                    client->INbuffer.push(*p);
+      default		: char* check = buffer;
+                  if(*check == '0'){
+                    printf("nullifying buffer");
+                    memset(buffer, 0, 50*sizeof(char));
+                    break;
+                  }
+                  else{
+                    printf("received a char");
+                    client->INbuffer.push(*check);
                   }
                   break;
   	}
@@ -66,11 +72,17 @@ void Client::send_server(int server_sockfd, Client* client){
   //Game input
   while(1){
     if(!(client->OUTbuffer.empty())){
+      printf("Sending %c \n", client->OUTbuffer.front());
       char c = client->OUTbuffer.front();
       client->OUTbuffer.pop();
+      
       send(server_sockfd, &c, sizeof(char), 0);
     }
   }
+}
+
+bool Client::isEmpty(){
+  return INbuffer.empty();
 }
 
 char Client::inBuffer(){
@@ -79,8 +91,6 @@ char Client::inBuffer(){
     INbuffer.pop();
     return front;
   }
-  else 
-    return '\0';
 }
 
 void Client::outBuffer(char c){

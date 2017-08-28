@@ -18,6 +18,7 @@ public:
     sf::Sprite getCurrentSprite();
     void update(sf::Time elapsedTime);
     void updateState(CharState::STATE st);
+    void getPosition();
     void draw();
     std::pair<float, float> position;
 protected:
