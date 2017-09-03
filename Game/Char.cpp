@@ -33,13 +33,16 @@ void Char::nextFrame(){
     currentSpriteIndex = currentSpriteIndex < (currentSpriteSheet->size() - 1) ? 
           (currentSpriteIndex + 1) : 0;
 }
-void Char::update(sf::Time elapsedTime){
+void Char::update(sf::Time elapsedTime, bool isOpponent){
     this->elapsedTime += elapsedTime;
     if(this->elapsedTime > sf::seconds(0.005f)){
         nextFrame();
         this->elapsedTime = sf::seconds(0);
     }
     int scale = 500;
+    if(isOpponent){
+        scale *= 20;
+    }
     switch(state){
         case CharState::WALKLEFT:
             position.first -= elapsedTime.asSeconds() * scale;

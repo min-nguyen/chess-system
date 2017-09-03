@@ -48,13 +48,14 @@ void Client::receive_server(int server_sockfd, Client* client){
                   return;
                   break;
       default		: char* check = buffer;
+                  //Server sent message not intended for game output
                   if(*check == '0'){
-                    printf("nullifying buffer");
+                    printf("%s\n", buffer);
                     memset(buffer, 0, 50*sizeof(char));
                     break;
                   }
+                  //Server sent game output action
                   else{
-                    printf("received a char");
                     client->INbuffer.push(*check);
                   }
                   break;
@@ -72,10 +73,8 @@ void Client::send_server(int server_sockfd, Client* client){
   //Game input
   while(1){
     if(!(client->OUTbuffer.empty())){
-      printf("Sending %c \n", client->OUTbuffer.front());
       char c = client->OUTbuffer.front();
       client->OUTbuffer.pop();
-      
       send(server_sockfd, &c, sizeof(char), 0);
     }
   }

@@ -6,5 +6,9 @@
 using namespace CharState;
 
 class StateMachine {
-
+    void processState(STATE currentState ) { 
+        switch(state) {
+            
+        }
+    }
 };

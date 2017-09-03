@@ -6,7 +6,6 @@
 #include <SFML/Graphics.hpp>
 #include <cstdlib>
 #include "Client.h"
-#include "Server.h"
 #include <functional>
 #include <thread>
 #undef main
@@ -17,10 +16,6 @@ void prnt(std::string string){
 void createClient(Client& client){
     client.run();
     std::cout << "running " << std::flush;
-}
-
-void createServer(Server& server){
-    server.run();
 }
 
 void updateOpponent(Client& client, Char& c2, sf::Clock& clock){
@@ -41,11 +36,12 @@ int main(int argc, char* argv[]) {
     Client client; 
     sf::Thread runClient(&createClient, std::ref(client));
     runClient.launch(); 
-    
+    std::cout << "here" << std::flush;
     while (window.isOpen())
     {
         sf::Event event;
         while (window.pollEvent(event)){
+            //Process our character actions
             if(event.type == sf::Event::KeyPressed){
                 if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
                     c.updateState(CharState::WALKLEFT);
@@ -60,27 +56,28 @@ int main(int argc, char* argv[]) {
             else {
                 c.updateState(CharState::IDLE);
             }
-            char ch = client.inBuffer();
-            if (ch == 'L'){
-                printf("l");
-                c2.updateState(CharState::WALKLEFT);
-            }
-            else if(ch == 'R'){
-                printf("r");
-                c2.updateState(CharState::WALKRIGHT);
-            }
-            else {
-                printf("idle");
-                c2.updateState(CharState::IDLE);
-            }
-
             if(event.type == sf::Event::Closed)
                 window.close();
         }
+        //Process opponent actions
+        char ch = client.inBuffer();
+        if (ch == 'L'){
+            printf("l");
+            c2.updateState(CharState::WALKLEFT);
+        }
+        else if(ch == 'R'){
+            printf("r");
+            c2.updateState(CharState::WALKRIGHT);
+        }
+        else {
+            c2.updateState(CharState::IDLE);
+        }
 
-        c2.update(clock.getElapsedTime());
+        //Update and draw both characters
+        c2.update(clock.getElapsedTime(), true);
+        c.update(clock.getElapsedTime(), false); 
+        c.getPosition();
         c2.draw();
-        c.update(clock.getElapsedTime());
         c.draw();
         window.display();
         window.clear();

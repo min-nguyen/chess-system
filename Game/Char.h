@@ -1,3 +1,7 @@
+#ifndef CHAR_H
+#define CHAR_H
+
+
 #include <stdio.h>
 #include <iostream>
 #include <SFML/Graphics.hpp>
@@ -16,7 +20,7 @@ public:
     Char(std::string fileName, sf::RenderWindow* window);
     void debug(std::string s);
     sf::Sprite getCurrentSprite();
-    void update(sf::Time elapsedTime);
+    void update(sf::Time elapsedTime, bool isOpponent);
     void updateState(CharState::STATE st);
     void getPosition();
     void draw();
@@ -35,3 +39,5 @@ protected:
 private:
     
 };
+
+#endif

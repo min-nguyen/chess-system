@@ -1,3 +1,6 @@
+#ifndef CLIENT_H
+#define CLIENT_H
+
 #include <stdio.h>
 #include <iostream>
 #include <SFML/Graphics.hpp>
@@ -17,3 +20,5 @@ private:
     std::queue<char> INbuffer;
     std::queue<char> OUTbuffer;
 };
+
+#endif
