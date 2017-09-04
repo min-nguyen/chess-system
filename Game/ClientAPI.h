@@ -12,16 +12,7 @@
 
 class ClientAPI {
 public:
-    ClientAPI(Char* c): c(c){
-        Client client;
-      
-    } 
-    void run(){
-        sf::Thread runClient(&createClient, std::ref(client)); 
-        runClient.launch(); 
-        std::cout << "done" << std::flush;
-        return;
-    }
+    ClientAPI(Char* c);
     void update();
     static void createClient(Client& client);
     void outBuffer(char c);

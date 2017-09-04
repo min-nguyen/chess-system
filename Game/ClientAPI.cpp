@@ -1,5 +1,10 @@
 #include "ClientAPI.h"
 
+
+ClientAPI::ClientAPI(Char* c): c(c){
+    
+} 
+
 void ClientAPI::update(){
     char ch = client.inBuffer();
     if (ch == 'L'){
