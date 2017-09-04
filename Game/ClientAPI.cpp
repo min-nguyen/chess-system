@@ -16,10 +16,12 @@ void ClientAPI::update(){
     c->update(clock.getElapsedTime(), true);
     clock.restart(); 
 }
+
 void ClientAPI::createClient(Client& client){
     client.run();
     std::cout << "running " << std::flush;
 }
+
 void ClientAPI::outBuffer(char c){
     client.outBuffer(c);
 } 

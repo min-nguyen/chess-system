@@ -17,6 +17,7 @@
 #define BACKLOG 10
 #define BUF_LEN (2 << 16)
 
+
 void printhostname(){
 	char hostname[20];
 	gethostname(hostname, 20);
@@ -110,6 +111,8 @@ void fd_pair_match(std::map<int, int>& fd_pairings, std::map<int, int>& fd_rever
 		fd_pairings.insert(std::pair<int, int>(second, client_fd));
 		fd_reversed.insert(std::pair<int, int>(client_fd, second));
 		printf("Successful pair matching between %d and %d\n", second, client_fd);
+		send(second, "1: Connected", sizeof("1: Connected"), 0);
+		send(client_fd, "1: Connected", sizeof("1: Connected"), 0);
 	}
 }
 
@@ -119,13 +122,13 @@ void fd_pair_send(std::map<int, int>& fd_pairings, std::map<int, int>& fd_revers
 	printf("sending from %d \n", client_fd);
 	if(it != fd_pairings.end()){
 		send(it->second, strng.c_str(), strlen(strng.c_str()) + 1, 0);
-		printf("Sending\n");
+		printf("sending from %d to %d\n", client_fd, it->second);
 	}
 	else {
 		it = fd_reversed.find(client_fd);
 		if(it != fd_reversed.end()){
 			send(it->second, strng.c_str(), strlen(strng.c_str()) + 1, 0);
-			printf("Sending\n");
+			printf("sending from %d to %d\n", client_fd, it->second);
 		}
 	}
 }
@@ -225,8 +228,8 @@ int main(int argc, char *argv[])
 						//Fd corresponding to client receives new I/O operation
 						else{
 							std::string strng(buffer);
-							fd_pair_match(fd_pairings, fd_reversed, i);
 							if(client_names.find(i) == client_names.end()){
+								fd_pair_match(fd_pairings, fd_reversed, i);
 								strng = "0: New client : " + strng + "\n";
 								client_names[i] = buffer;
 							}

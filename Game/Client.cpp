@@ -48,10 +48,15 @@ void Client::receive_server(int server_sockfd, Client* client){
                   return;
                   break;
       default		: char* check = buffer;
-                  //Server sent message not intended for game output
+                  //Server requires name
                   if(*check == '0'){
                     printf("%s\n", buffer);
                     memset(buffer, 0, 50*sizeof(char));
+                    break;
+                  }
+                  //Client matched with opponent
+                  else if(*check == '1'){
+                    client->connected = true;
                     break;
                   }
                   //Server sent game output action
@@ -61,6 +66,10 @@ void Client::receive_server(int server_sockfd, Client* client){
                   break;
   	}
   }
+}
+
+bool Client::isConnected(){
+  return connected;
 }
 
 void Client::send_server(int server_sockfd, Client* client){
@@ -76,6 +85,7 @@ void Client::send_server(int server_sockfd, Client* client){
       char c = client->OUTbuffer.front();
       client->OUTbuffer.pop();
       send(server_sockfd, &c, sizeof(char), 0);
+
     }
   }
 }
