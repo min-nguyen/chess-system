@@ -47,23 +47,21 @@ void Snake::run(sf::Time elapsedTime){
     draw();
 }
 
-void Snake::update(sf::Time elapsedTime ){
-    this->elapsedTime += elapsedTime;
-    
+void Snake::update(sf::Time time){
     int scale = 500;
 
     switch(state){
         case State::L:
-            position.first -= (elapsedTime.asSeconds() * scale);
+            position.first -= (time.asSeconds() * scale);
             break;
         case State::R: 
-            position.first += (elapsedTime.asSeconds() * scale);
+            position.first += (time.asSeconds() * scale);
             break; 
         case State::U: 
-            position.second -= elapsedTime.asSeconds() * scale;
+            position.second -= time.asSeconds() * scale;
             break; 
         case State::D: 
-            position.second += elapsedTime.asSeconds() * scale;
+            position.second += time.asSeconds() * scale;
             break; 
         default: 
             break;

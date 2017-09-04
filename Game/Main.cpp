@@ -58,6 +58,7 @@ int main(int argc, char* argv[]) {
     while (window.isOpen())
     {   
         if(client.isConnected()){
+            clock.restart();
             sf::Event event;
             while (window.pollEvent(event)){
                 //Process our character actions
@@ -86,11 +87,12 @@ int main(int argc, char* argv[]) {
             sf::Time now = clock.getElapsedTime();
             snake.update(now); 
             snake2.update(now); 
+            snake2.getPosition();
             snake.draw();
             snake2.draw();
             window.display();
             window.clear();
-            clock.restart();
+            
         }
     }
 
