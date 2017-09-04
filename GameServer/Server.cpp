@@ -17,6 +17,10 @@
 #define BACKLOG 10
 #define BUF_LEN (2 << 16)
 
+struct Room {
+	int id;
+	int people;
+};
 
 void printhostname(){
 	char hostname[20];
@@ -160,7 +164,29 @@ void fd_pair_disconnect(std::map<int, int>& fd_pairings, std::map<int, int>& fd_
 			}
 		}
 	}
-	
+}
+
+void makeRoom(std::vector<Room*>* rooms, int id){
+	Room* room = (Room*) malloc(sizeof(Room));
+	room->id = id;
+	room->people = 1;
+	rooms->push_back(room);
+}
+
+void serializeRoom(Room* room, char* data){
+	int* ptr = (int*) data;
+	*ptr = room->id; 
+	++ptr;
+	*ptr = room->people;
+	++ptr;
+}
+
+void deserializeRoom(char* data, Room* room){
+	int* ptr = (int*) data;
+	room->id = *ptr; 
+	++ptr;
+	room->people = *ptr;
+
 }
 
 int main(int argc, char *argv[])
@@ -170,6 +196,7 @@ int main(int argc, char *argv[])
 	int max_fd;
 
 	// Client storage
+	std::vector<Room*> rooms;
 	std::map<int, std::string> client_names;
 	std::map<int, int> fd_pairings;
 	std::map<int, int> fd_reversed;
@@ -198,8 +225,8 @@ int main(int argc, char *argv[])
 
 	// Allocate empty peer fields for temporary storage of connected clients
 	struct sockaddr* 	client_sockaddr = (struct sockaddr*) malloc(sizeof(struct sockaddr));
-	uint* 						client_addrlen 	= (uint*) malloc(sizeof(uint));
-	int								client_sockfd		= -1;
+	uint* 				client_addrlen 	= (uint*) malloc(sizeof(uint));
+	int					client_sockfd	= -1;
 
 	while(1){
 		reads_fd = connections_fd;
@@ -232,6 +259,7 @@ int main(int argc, char *argv[])
 								fd_pair_match(fd_pairings, fd_reversed, i);
 								strng = "0: New client : " + strng + "\n";
 								client_names[i] = buffer;
+								makeRoom(&rooms, i);
 							}
 							fd_pair_send(fd_pairings, fd_reversed, i, strng);
 							printf("%s", strng.c_str());
