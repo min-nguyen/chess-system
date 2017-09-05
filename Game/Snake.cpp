@@ -9,42 +9,20 @@ Snake::Snake(sf::RenderWindow* window)
     state(State::R),
     window(window){ 
     
-    currentSprites = spriteSheet.makeSprites(" ", std::make_pair(0, 0), 40, 40, 1);
-        
+    currentSprites = spriteSheet.makeSprites(" ", std::make_pair(0, 0), 40, 40, 1);    
 }
 
 void Snake::getPosition(){
     std::cout << position.first << "," << position.second << "\n" << std::flush;
 }
 
-void Snake::draw(){
-    
+void Snake::blitCell(int x, int y){
+    currentSprites.at(currentSpriteIndex)->setPosition(sf::Vector2f(x, y));
     window->draw(*(currentSprites.at(0))) ;
 }
 
-void Snake::run(sf::Time elapsedTime){
-    sf::Event event;
-    while (window->pollEvent(event)){
-        //Process our character actions
-        if(event.type == sf::Event::KeyPressed){
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
-                updateState(State::L);
-            }
-            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
-                updateState(State::R);
-            }
-            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
-                updateState(State::U);
-            }
-            else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
-                updateState(State::D);
-            }
-        }
-    }
-    //Update and draw both characters
-    getPosition();
-    update(elapsedTime); 
-    draw();
+void Snake::draw(){
+    window->draw(*(currentSprites.at(0))) ;
 }
 
 void Snake::update(sf::Time time){

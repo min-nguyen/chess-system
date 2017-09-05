@@ -15,34 +15,40 @@ void createClient(Client& client){
     std::cout << "running " << std::flush;
 }
 
-void updateOpponent(Client& client, Snake& c2){
+void doDraw(char** map, sf::Window* window){
+    for(int i = 0; i < 20; i ++){
+        for(int j = 0; j < 20; j++){
+            printf("%d %d %d \n", *(*(map+i)+j), i, j);
+            std::cout << std::flush;
+        }
+    }
+}
+
+void processMap(Client& client, Snake& c2, char** map){
     while(true){
-        char ch = client.inBuffer();
-        if (ch == 'L'){
-            c2.updateState(State::L);
-            std::cout << "l" << std::flush;
-        }
-        else if(ch == 'R'){
-            c2.updateState(State::R);
-            std::cout << "r" << std::flush;
-        }
-        else if(ch == 'U'){
-            c2.updateState(State::U);
-            std::cout << "u" << std::flush;
-        }
-        else if(ch == 'D'){
-            c2.updateState(State::D);
-            std::cout << "d" << std::flush;
+        if(client.isConnected()){
+            if(!client.mapQueueIsEmpty()){
+                map = client.getMap();
+                for(int i = 0; i < 20; i ++){
+                    for(int j = 0; j < 20; j++){
+                        c2.blitCell(i*40, j*40);
+                    }
+                }
+            }
         }
     }
 }
 
 int main(int argc, char* argv[]) {
 
-    sf::RenderWindow window(sf::VideoMode(800, 400), "SFML works!");
+    sf::RenderWindow window(sf::VideoMode(800, 800), "SFML works!");
     sf::RenderTexture renderTexture;
     sf::Clock clock;
     sf::Time elapsedTime = clock.restart();
+
+    char** map = new char*[20];
+    for(int i = 0; i < 20; ++i)
+        map[i] = new char[20];
 
     Client client; 
     sf::Thread runClient(&createClient, std::ref(client));
@@ -51,9 +57,8 @@ int main(int argc, char* argv[]) {
     Snake snake(&window);
     Snake snake2(&window);
 
-    sf::Thread updateClient(std::bind(&updateOpponent, std::ref(client), std::ref(snake2)));
-    updateClient.launch();
-
+    sf::Thread runMap(std::bind(&processMap, std::ref(client), std::ref(snake2), map));
+    runMap.launch();
 
     while (window.isOpen())
     {   
@@ -83,18 +88,41 @@ int main(int argc, char* argv[]) {
                 if(event.type == sf::Event::Closed)
                     window.close();
             }
-            //Update and draw both characters
-            sf::Time now = clock.getElapsedTime();
-            snake.update(now); 
-            snake2.update(now); 
-            snake2.getPosition();
-            snake.draw();
-            snake2.draw();
+            // //Update and draw both characters
+            // sf::Time now = clock.getElapsedTime();
+            // snake.update(now); 
+            // snake2.update(now); 
+            // snake2.getPosition();
+            // snake.blitCell(40,40);
+            // snake2.draw();
             window.display();
-            window.clear();
+            // window.clear();
             
         }
     }
 
     return 0;
+}
+void som(){
+    // char ch = client.inBuffer();
+            // switch(ch){
+            //     case 'L': 
+            //         c2.updateState(State::L);
+            //         std::cout << "l" << std::flush;
+            //         break;
+            //     case 'R':
+            //         c2.updateState(State::R);
+            //         std::cout << "r" << std::flush;
+            //         break;
+            //     case 'U':
+            //         c2.updateState(State::U);
+            //         std::cout << "u" << std::flush;
+            //         break;
+            //     case 'D':
+            //         c2.updateState(State::D);
+            //         std::cout << "d" << std::flush;
+            //         break;
+            //     default: 
+            //         break;
+            // }
 }

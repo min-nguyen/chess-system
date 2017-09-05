@@ -19,10 +19,10 @@ class Snake {
 public:
     Snake(sf::RenderWindow* window);
     State::SnakeState getCurrentState();
-    void run(sf::Time elapsedTime);
     void update(sf::Time elapsedTime);
     void updateState(State::SnakeState st);
     void getPosition();
+    void blitCell(int x, int y);
     void draw();
     std::pair<float, float> position;
 protected:

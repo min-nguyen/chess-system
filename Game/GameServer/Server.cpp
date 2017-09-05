@@ -20,6 +20,7 @@
 struct Room {
 	int id;
 	int people;
+	int map[20][20];
 };
 
 void printhostname(){
@@ -104,8 +105,10 @@ void request_clientname(std::map<int, std::string> client_names, int sockfd_clie
 }
 
 void fd_pair_match(std::map<int, int>& fd_pairings, std::map<int, int>& fd_reversed, int client_fd){
+	std::cout << "<< I IS " << client_fd;
 	std::map<int,int>::iterator it;
 	it = fd_pairings.find(-1);
+	
 	if(it == fd_pairings.end()){
 		fd_pairings.insert(std::pair<int, int>(-1, client_fd));
 		printf("Client with fd %d is waiting for an opponent\n", client_fd);
@@ -120,18 +123,24 @@ void fd_pair_match(std::map<int, int>& fd_pairings, std::map<int, int>& fd_rever
 	}
 }
 
-void fd_pair_send(std::map<int, int>& fd_pairings, std::map<int, int>& fd_reversed, int client_fd, std::string strng){
+void fd_pair_send(std::map<int, int>& fd_pairings, std::map<int, int>& fd_reversed, int client_fd, char* mapPtr){
 	std::map<int,int>::iterator it;
 	it = fd_pairings.find(client_fd);
 	printf("sending from %d \n", client_fd);
+	for(int i = 0; i < 20; i ++){
+		for (int j = 0; j < 20; j++){
+			printf("%d", *(mapPtr+(i*10)+j)); 
+			std::cout << std::flush;
+		}
+	}
 	if(it != fd_pairings.end()){
-		send(it->second, strng.c_str(), strlen(strng.c_str()) + 1, 0);
+		send(it->second, mapPtr, 400*sizeof(char), 0);
 		printf("sending from %d to %d\n", client_fd, it->second);
 	}
 	else {
 		it = fd_reversed.find(client_fd);
 		if(it != fd_reversed.end()){
-			send(it->second, strng.c_str(), strlen(strng.c_str()) + 1, 0);
+			send(it->second, mapPtr, 400*sizeof(char), 0);
 			printf("sending from %d to %d\n", client_fd, it->second);
 		}
 	}
@@ -186,7 +195,29 @@ void deserializeRoom(char* data, Room* room){
 	room->id = *ptr; 
 	++ptr;
 	room->people = *ptr;
+}
 
+void serializeMap(char* ptr, int map[20][20]){
+	for(int i = 0; i < 20; i ++){
+		for (int j = 0; j < 20; j++){
+			*ptr = (char) map[i][j];
+			printf("%d", *ptr); 
+			ptr++;
+			std::cout << std::flush;
+		}
+	}
+}
+
+void deserializeMap(char* ptr){
+	int* de = (int*) ptr;
+	for(int i = 0; i < 20; i ++){
+		for (int j = 0; j < 20; j++){
+			*de = *ptr;
+			ptr++;
+			de++;
+			std::cout << *de << " " << std::flush;
+		}
+	}
 }
 
 int main(int argc, char *argv[])
@@ -228,6 +259,16 @@ int main(int argc, char *argv[])
 	uint* 				client_addrlen 	= (uint*) malloc(sizeof(uint));
 	int					client_sockfd	= -1;
 
+	Room room;
+	char* ptr = (char*) malloc(400*sizeof(char));
+	
+	for(int k = 0; k < 20; k++){
+		for (int l = 0; l < 20; l++){
+			room.map[k][l] = 0;
+		}
+	}
+	serializeMap(ptr, room.map);
+
 	while(1){
 		reads_fd = connections_fd;
 		//Updates 'reads_fd' to indicate which socket file descriptors are ready to read
@@ -261,8 +302,10 @@ int main(int argc, char *argv[])
 								client_names[i] = buffer;
 								makeRoom(&rooms, i);
 							}
-							fd_pair_send(fd_pairings, fd_reversed, i, strng);
-							printf("%s", strng.c_str());
+							else{
+								fd_pair_send(fd_pairings, fd_reversed, i, ptr);
+								printf("%s", strng.c_str());
+							}
 							memset(buffer, 0, 50*sizeof(char));
 						}
 					}
