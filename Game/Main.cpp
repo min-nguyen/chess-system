@@ -24,6 +24,8 @@ void doDraw(char** map, sf::Window* window){
     }
 }
 
+
+//Seg fault caused by wrong order/synchronisation of RenderWindow actions?
 void processMap(Client& client, Snake& c2, char** map){
     while(true){
         if(client.isConnected()){
@@ -31,7 +33,9 @@ void processMap(Client& client, Snake& c2, char** map){
                 map = client.getMap();
                 for(int i = 0; i < 20; i ++){
                     for(int j = 0; j < 20; j++){
-                        c2.blitCell(i*40, j*40);
+                        printf("%d", *(*(map + i)+j));
+                        std::cout << std::flush;
+                        // c2.blitCell(i*40, j*40);
                     }
                 }
             }

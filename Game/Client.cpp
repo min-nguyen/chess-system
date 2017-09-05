@@ -76,17 +76,15 @@ void Client::receive_server(int server_sockfd, Client* client){
                   if(client->connected){
                       char** map = deserializeMap(check);
                       client->mapQueue.push(map);
-                  } 
+                  }
                   //Server requires name
                   else if(*check == '0'){
                     printf("%s\n", buffer);
-                    memset(buffer, 0, 400*sizeof(char));
-                    break;
                   }
                   //Client matched with opponent
                   else if(*check == '1'){
+                    std::cout << "connected\n" << std::flush;
                     client->connected = true;
-                    break;
                   }
                   //Server sent game output action
                   else{
@@ -94,6 +92,7 @@ void Client::receive_server(int server_sockfd, Client* client){
                       std::cout << buffer[i] << std::flush;
                     }
                   }
+                  memset(buffer, 0, 400*sizeof(char));
                   break;
   	}
   }
