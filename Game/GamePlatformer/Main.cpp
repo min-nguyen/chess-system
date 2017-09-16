@@ -9,7 +9,7 @@
 #include <functional>
 #include <thread>
 // #undef main
-
+ 
 void createClient(Client& client){
     client.run();
     std::cout << "running " << std::flush;
@@ -76,57 +76,18 @@ int main(int argc, char* argv[]) {
                         snake.updateState(State::L);
                         client.outBuffer('L');
                     }
-                    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
-                        snake.updateState(State::R);
-                        client.outBuffer('R');
-                    }
-                    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
-                        snake.updateState(State::U);
-                        client.outBuffer('U');
-                    }
-                    else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
-                        snake.updateState(State::D);
-                        client.outBuffer('D');
-                    }
                 }
                 if(event.type == sf::Event::Closed)
                     window.close();
             }
             // //Update and draw both characters
             // sf::Time now = clock.getElapsedTime();
-            // snake.update(now); 
-            // snake2.update(now); 
-            // snake2.getPosition();
-            // snake.blitCell(40,40);
-            // snake2.draw();
+            
             window.display();
-            // window.clear();
+            window.clear();
             
         }
     }
 
     return 0;
-}
-void som(){
-    // char ch = client.inBuffer();
-            // switch(ch){
-            //     case 'L': 
-            //         c2.updateState(State::L);
-            //         std::cout << "l" << std::flush;
-            //         break;
-            //     case 'R':
-            //         c2.updateState(State::R);
-            //         std::cout << "r" << std::flush;
-            //         break;
-            //     case 'U':
-            //         c2.updateState(State::U);
-            //         std::cout << "u" << std::flush;
-            //         break;
-            //     case 'D':
-            //         c2.updateState(State::D);
-            //         std::cout << "d" << std::flush;
-            //         break;
-            //     default: 
-            //         break;
-            // }
 }

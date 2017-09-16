@@ -19,8 +19,6 @@ void Snake::getPosition(){
 void Snake::blitCell(int x, int y){
     currentSprites.at(currentSpriteIndex)->setPosition(sf::Vector2f(x, y));
     window->draw(*(currentSprites.at(0)));
-    window->display();
-    window->clear();
 }
 
 void Snake::draw(){
