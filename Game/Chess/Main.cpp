@@ -8,7 +8,8 @@
 #include <functional>
 #include <thread>
 #include "Grid.h"
-// #undef main
+#include "Chess.h"
+#include "King.h"
 
 void createClient(Client& client){
     client.run();
@@ -18,21 +19,23 @@ void createClient(Client& client){
 
 int main(int argc, char* argv[]) {
 
-    sf::RenderWindow window(sf::VideoMode(1000, 1000), "SFML works!");
+    sf::RenderWindow window(sf::VideoMode(500, 500), "SFML works!");
     sf::RenderTexture renderTexture;
     sf::Clock clock;
     sf::Time elapsedTime = clock.restart();
 
     Grid grid(&window);
 
+   
     while (window.isOpen())
     {   
             clock.restart();
             sf::Event event;
             while (window.pollEvent(event)){
                 //Process our character actions
-                if(event.type == sf::Event::KeyPressed){
-
+                if(sf::Mouse::isButtonPressed(sf::Mouse::Left)){
+                    sf::Vector2i localPosition = sf::Mouse::getPosition(window);
+                    grid.selectCell(localPosition);
                 }
                 if(event.type == sf::Event::Closed)
                     window.close();
@@ -40,6 +43,7 @@ int main(int argc, char* argv[]) {
             // //Update and draw both characters
             // sf::Time now = clock.getElapsedTime();
             grid.drawGrid();
+
             window.display();
             window.clear();
             

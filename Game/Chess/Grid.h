@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Chess.h"
+#include "King.h"
 #include "SpriteSheet.h"
 #include <utility>
 #include <vector>
@@ -11,40 +12,34 @@
 #include <SFML/Graphics.hpp>
 #include <array>
 
-struct ChessGrid {
-    enum Colour {
-        White, 
-        Black
-    };
+enum class PlayerState {
+    Blue,
+    Red
 };
+
+enum class GridState {
+    AwaitingCellSelect,
+    CellSelected,
+};
+
 class Grid {
-    using ChessPiece = std::pair<Chess*, ChessTeam::Team>;
+    using ChessPiece = std::pair<std::unique_ptr<Chess>, ChessTeam>;
 public:
-    Grid(sf::RenderWindow* t_window): 
-        window(t_window), 
-        spriteMaker(SpriteSheet("./chessgrid.png")){
-
-        //Get grid sprite, set position
-        chessGrid = spriteMaker.makeSprite("Grid", std::make_pair(0,0), 1000, 1000);
-        chessGrid->setPosition(sf::Vector2f(0, 0));
-
-        //Initialise empty grid
-        for(auto itA = grid.begin(); itA != grid.end(); ++itA){
-            for(auto itB = itA->begin(); itB != itA->end(); ++itB){
-                *itB = std::make_pair(nullptr, ChessTeam::Empty);
-            }
-        }
-    }
+    Grid(sf::RenderWindow* t_window);
     //Draw grid to window
-    void drawGrid(){
-        window->draw(*chessGrid);
-    }
+    void drawGrid();
+    void processInput(const sf::Vector2i t_xy);
+    void selectCell(const sf::Vector2i t_xy);
+    void moveCell(const sf::Vector2i t_xy);
+    PlayerState playerState;
+    GridState gridState;
     
 private:
     SpriteSheet spriteMaker;
     std::array<std::array<ChessPiece, 10>, 10> grid;
-    sf::Sprite* chessGrid = nullptr;
+    sf::Sprite chessGrid;
     sf::RenderWindow* window = nullptr;
+    ChessPiece* selectedPiece;
 }; 
 
 #endif 

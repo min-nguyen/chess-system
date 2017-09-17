@@ -9,25 +9,30 @@
 #include <SFML/Graphics.hpp>
 #include "SpriteSheet.h"
 
-namespace ChessTeam {
-    enum Team {
+
+enum class ChessTeam {
         Blue, 
         Red,
         Empty
-    };
 };
 
 class Chess{
 public: 
-    Chess(ChessTeam::Team team, std::string fileName);
-    void remove();
-    void add();
-    virtual void move();
+    Chess(const ChessTeam team, std::string fileName, sf::RenderWindow* window);
+    //Generic functions
+    void move(const int x, const int y);
+    //Abstract functions
+    virtual void remove() = 0;
+    virtual void add() = 0;
+    virtual void draw() = 0;
+    //Chess piece properties
     std::vector<std::pair<int, int> > validMoves;
-    ChessTeam::Team team;
+    std::pair<int, int> position;
+    const ChessTeam team;
 protected:
-    sf::Sprite* icon = nullptr;
+    sf::Sprite icon;
     SpriteSheet spriteMaker;
+    sf::RenderWindow* window;
 private:
 }; 
 

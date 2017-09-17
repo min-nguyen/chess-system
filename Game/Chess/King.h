@@ -11,11 +11,19 @@
 
 class King: Chess{
 public: 
-    King(ChessTeam::Team team, std::string fileName);
+    King(   const ChessTeam t_team, 
+            std::string t_fileName, 
+            sf::RenderWindow* t_window);
     void move();
-    ChessTeam::Team team;
+    void add();
+    void remove();
+    void draw();
+    static std::string getFileName(){
+        return "./chessIcons.png";
+    };
+    ChessTeam team;
 private:
-    sf::Sprite* icon = nullptr;
+
 }; 
 
   

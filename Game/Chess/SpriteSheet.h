@@ -11,13 +11,13 @@ public:
     SpriteSheet(std::string fileName);
     
     // Multiple sprites
-    std::vector<sf::Sprite*> makeSprites(std::string name, 
+    std::vector<sf::Sprite> makeSprites(std::string name, 
                                         std::pair<int, int> coordinates, 
                                         int width, 
                                         int height, 
                                         int numSprites);
     // Single sprite                                    
-    sf::Sprite* makeSprite(std::string name, 
+    sf::Sprite makeSprite(std::string name, 
         std::pair<int, int> coordinates, 
         int width, 
         int height);
