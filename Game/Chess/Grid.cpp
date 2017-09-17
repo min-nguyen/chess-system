@@ -53,7 +53,11 @@ void Grid::moveCell(const sf::Vector2i t_xy){
         // Get previous coordinates and next coordinates
         auto prev_xy = selectedPiece->first->position;
         int x = coordinates.first, y = coordinates.second;
-
+        //If move is not valid
+        if(!selectedPiece->first->isValid(x, y)){
+            selectedPiece = nullptr;
+            gridState = GridState::AwaitingCellSelect;
+        }
         // If empty cell or opponent, update piece
         if(grid[x][y].second == ChessTeam::Empty || grid[x][y].second != selectedPiece->second){
             //Update piece position
@@ -66,7 +70,7 @@ void Grid::moveCell(const sf::Vector2i t_xy){
             gridState = GridState::AwaitingCellSelect;
             playerState = (playerState == PlayerState::Blue) ? PlayerState::Red : PlayerState::Blue;
         }
-        // Invalid cell
+        // If cell contains own piece
         else {
             gridState = GridState::AwaitingCellSelect;
             selectedPiece = nullptr;
@@ -77,7 +81,6 @@ void Grid::moveCell(const sf::Vector2i t_xy){
 void Grid::selectCell(const sf::Vector2i t_xy){
     if((t_xy.x && t_xy.y) > 0){
         std::pair<int,int> coordinates = std::make_pair(t_xy.x / 50, t_xy.y / 50);
-        // printf("%d %d \n", coordinates.first, coordinates.second);
 
         int x = coordinates.first, y = coordinates.second;
         switch(grid[x][y].second) {

@@ -19,18 +19,19 @@ King::King( const ChessTeam t_team,
     validMoves.push_back(std::make_pair(1,1));
 }  
 
-void King::move(){ 
-    
-}
-
-void King::add(){ 
-
-}
-
-void King::remove(){ 
-    
-}
 
 void King::draw(){
     window->draw(icon);
 }
+
+
+bool King::isValid(int x, int y){
+    auto pair = std::make_pair(position.first - x, position.second - y);
+    for(int i = 0; i < validMoves.size(); i++){
+        if(validMoves[i].first == pair.first && validMoves[i].second == pair.second){
+            return true;
+        }
+    }
+    return false;
+}
+

@@ -24,12 +24,11 @@ public:
             std::pair<int, int> t_position);
     //Generic functions
     void move(const int x, const int y);
+    
     //Abstract functions
-    virtual void remove() = 0;
-    virtual void add() = 0;
     virtual void draw() = 0;
+    virtual bool isValid(int x, int y) = 0;
     //Chess piece properties
-    std::vector<std::pair<int, int> > validMoves;
     std::pair<int, int> position;
     const ChessTeam team;
 protected:

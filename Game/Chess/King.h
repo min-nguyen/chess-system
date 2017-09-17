@@ -15,16 +15,15 @@ public:
             std::string t_fileName, 
             sf::RenderWindow* t_window,
             std::pair<int, int> t_position);
-    void move();
-    void add();
-    void remove();
+
     void draw();
+    bool isValid(int x, int y);
     static std::string getFileName(){
         return "./chessIcons.png";
     };
     ChessTeam team;
 private:
-
+    std::vector<std::pair<int, int> > validMoves;
 }; 
 
   

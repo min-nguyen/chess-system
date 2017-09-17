@@ -14,13 +14,6 @@ Chess::Chess(   const ChessTeam t_team,
 
 }  
 
-void Chess::remove(){ 
-    
-}
-
-void Chess::add(){
-
-}
 
 void Chess::move(const int x, const int y){
     position = std::make_pair(x, y);
