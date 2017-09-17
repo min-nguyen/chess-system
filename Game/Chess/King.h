@@ -9,11 +9,12 @@
 #include <SFML/Graphics.hpp>
 #include "Chess.h"
 
-class King: Chess{
+class King: public Chess{
 public: 
     King(   const ChessTeam t_team, 
             std::string t_fileName, 
-            sf::RenderWindow* t_window);
+            sf::RenderWindow* t_window,
+            std::pair<int, int> t_position);
     void move();
     void add();
     void remove();

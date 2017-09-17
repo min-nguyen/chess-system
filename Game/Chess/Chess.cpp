@@ -3,10 +3,12 @@
 
 Chess::Chess(   const ChessTeam t_team, 
                 std::string t_fileName, 
-                sf::RenderWindow* t_window)
+                sf::RenderWindow* t_window,
+                std::pair<int, int> t_position)
             :   team(t_team), 
                 spriteMaker(SpriteSheet(t_fileName)),
-                window(t_window) {
+                window(t_window),
+                position(t_position) {
 
     icon = spriteMaker.makeSprite("ICON", std::make_pair(0, 0), 50, 50);
 

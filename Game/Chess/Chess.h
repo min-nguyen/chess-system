@@ -18,7 +18,10 @@ enum class ChessTeam {
 
 class Chess{
 public: 
-    Chess(const ChessTeam team, std::string fileName, sf::RenderWindow* window);
+    Chess(  const ChessTeam team, 
+            std::string fileName, 
+            sf::RenderWindow* window, 
+            std::pair<int, int> t_position);
     //Generic functions
     void move(const int x, const int y);
     //Abstract functions

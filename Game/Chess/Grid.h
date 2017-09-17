@@ -11,7 +11,7 @@
 #include <string>
 #include <SFML/Graphics.hpp>
 #include <array>
-
+#include <memory>
 enum class PlayerState {
     Blue,
     Red
@@ -23,7 +23,7 @@ enum class GridState {
 };
 
 class Grid {
-    using ChessPiece = std::pair<std::unique_ptr<Chess>, ChessTeam>;
+    using ChessPiece = std::pair<std::shared_ptr<Chess>, ChessTeam>;
 public:
     Grid(sf::RenderWindow* t_window);
     //Draw grid to window
@@ -39,7 +39,7 @@ private:
     std::array<std::array<ChessPiece, 10>, 10> grid;
     sf::Sprite chessGrid;
     sf::RenderWindow* window = nullptr;
-    ChessPiece* selectedPiece;
+    ChessPiece* selectedPiece  = nullptr;
 }; 
 
 #endif 

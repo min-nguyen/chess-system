@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
                 //Process our character actions
                 if(sf::Mouse::isButtonPressed(sf::Mouse::Left)){
                     sf::Vector2i localPosition = sf::Mouse::getPosition(window);
-                    grid.selectCell(localPosition);
+                    grid.processInput(localPosition);
                 }
                 if(event.type == sf::Event::Closed)
                     window.close();

@@ -11,17 +11,29 @@ Grid::Grid(sf::RenderWindow* t_window):
         chessGrid = spriteMaker.makeSprite("Grid", std::make_pair(0,0), 1000, 1000);
         chessGrid.setScale(0.5f, 0.5f);  
         chessGrid.setPosition(sf::Vector2f(0, 0));
-        //Initialise empty grid
+
+        //Initialise empty grid of smart null ptrs
         for(auto itA = grid.begin(); itA != grid.end(); ++itA){
             for(auto itB = itA->begin(); itB != itA->end(); ++itB){
-                *itB = std::make_pair(
-                    std::unique_ptr<Chess>(new Chess(ChessTeam::Empty(),
-                                            "", window), ChessTeam::Empty);
-                );
+                *itB = std::make_pair(std::shared_ptr<Chess>(nullptr), ChessTeam::Empty);
+                
             }
         }
-        std::unique_ptr<King> king(new King(ChessTeam::Blue, King::getFileName(), window));
-        grid[0][0] = (std::make_pair(std::move(king), ChessTeam::Blue));
+
+        std::shared_ptr<King> kingA(new King(ChessTeam::Blue, King::getFileName(), window, std::make_pair(0,0)));
+        std::shared_ptr<King> kingB(new King(ChessTeam::Red, King::getFileName(), window, std::make_pair(0,1)));
+        grid[0][0] = (std::make_pair(kingA, ChessTeam::Blue));
+        grid[0][1] = (std::make_pair(kingB, ChessTeam::Red));
+}
+
+void Grid::drawGrid(){
+    window->draw(chessGrid);
+    for(auto itA = grid.begin(); itA != grid.end(); ++itA){
+        for(auto itB = itA->begin(); itB != itA->end(); ++itB){
+            if(itB->second != ChessTeam::Empty)
+                itB->first->draw();
+        }
+    }
 }
 
 void Grid::processInput(const sf::Vector2i t_xy){
@@ -38,9 +50,26 @@ void Grid::moveCell(const sf::Vector2i t_xy){
         std::pair<int,int> coordinates = std::make_pair(t_xy.x / 50, t_xy.y / 50);
         printf("%d %d \n", coordinates.first, coordinates.second);
 
+        // Get previous coordinates and next coordinates
+        auto prev_xy = selectedPiece->first->position;
         int x = coordinates.first, y = coordinates.second;
-        if(grid[x][y].second == ChessTeam::Empty){
+
+        // If empty cell or opponent, update piece
+        if(grid[x][y].second == ChessTeam::Empty || grid[x][y].second != selectedPiece->second){
+            //Update piece position
             selectedPiece->first->move(x, y);
+            //Update grid
+            grid[x][y] = (*selectedPiece);
+            grid[prev_xy.first][prev_xy.second] = std::make_pair(std::shared_ptr<Chess>(nullptr), ChessTeam::Empty);
+            //Reset selected piece and grid state
+            selectedPiece = nullptr;
+            gridState = GridState::AwaitingCellSelect;
+            playerState = (playerState == PlayerState::Blue) ? PlayerState::Red : PlayerState::Blue;
+        }
+        // Invalid cell
+        else {
+            gridState = GridState::AwaitingCellSelect;
+            selectedPiece = nullptr;
         }
     }
 }
@@ -73,6 +102,3 @@ void Grid::selectCell(const sf::Vector2i t_xy){
     }
 }
 
-void Grid::drawGrid(){
-    window->draw(chessGrid);
-}
