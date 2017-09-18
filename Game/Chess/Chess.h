@@ -3,12 +3,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "SpriteSheet.h"
 #include <utility>
 #include <vector>
 #include <string>
 #include <SFML/Graphics.hpp>
-#include "SpriteSheet.h"
-
+#include <array>
+#include <memory>
 
 enum class ChessTeam {
         Blue, 
@@ -24,11 +25,11 @@ public:
             sf::RenderWindow* window, 
             std::pair<int, int> t_position);
     //Generic functions
-    void move(const int x, const int y);
+    void move(int x, int y);
     
     //Abstract functions
     virtual void draw() = 0;
-    virtual bool isValid(int x, int y) = 0;
+    virtual bool isValid(int x, int y, std::pair<std::shared_ptr<Chess>, ChessTeam> t) = 0;
     //Chess piece properties
     std::pair<int, int> position;
     const ChessTeam team;

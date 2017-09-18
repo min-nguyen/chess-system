@@ -13,6 +13,7 @@
 #include <SFML/Graphics.hpp>
 #include <array>
 #include <memory>
+
 enum class PlayerState {
     Blue,
     Red
@@ -32,7 +33,6 @@ public:
     void processInput(const sf::Vector2i t_xy);
     void selectCell(const sf::Vector2i t_xy);
     void moveCell(const sf::Vector2i t_xy);
-    
     PlayerState playerState;
     GridState gridState;
     

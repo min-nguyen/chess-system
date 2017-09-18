@@ -16,7 +16,7 @@ public:
             std::pair<int, int> t_position);
 
     void draw() override;
-    bool isValid(int x, int y) override;
+    bool isValid(int x, int y, std::pair<std::shared_ptr<Chess>, ChessTeam> t) override;
     static std::string getFileName(){
         return "./chessIcons.png";
     };

@@ -17,6 +17,7 @@ void createClient(Client& client){
 }
 
 
+
 int main(int argc, char* argv[]) {
 
     sf::RenderWindow window(sf::VideoMode(500, 500), "SFML works!");
@@ -26,7 +27,7 @@ int main(int argc, char* argv[]) {
 
     Grid grid(&window);
 
-   
+ 
     while (window.isOpen())
     {   
             clock.restart();

@@ -3,11 +3,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "Chess.h"
+#include "SpriteSheet.h"
 #include <utility>
 #include <vector>
 #include <string>
 #include <SFML/Graphics.hpp>
-#include "Chess.h"
+#include <array>
+#include <memory>
 
 class Pawn: public Chess{
 public: 
@@ -16,7 +19,7 @@ public:
             std::pair<int, int> t_position);
 
     void draw() override;
-    bool isValid(int x, int y) override;
+    bool isValid(int x, int y, std::pair<std::shared_ptr<Chess>, ChessTeam> t) override;
     static std::string getFileName(){
         return "./chessIcons.png";
     };

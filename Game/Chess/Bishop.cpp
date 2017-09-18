@@ -12,6 +12,6 @@ void Bishop::draw(){
     window->draw(icon);
 }
 
-bool Bishop::isValid(int x, int y){
+bool Bishop::isValid(int x, int y, std::pair<std::shared_ptr<Chess>, ChessTeam> t){
     return (position.first - x == position.second - y) ? true : false;
 }

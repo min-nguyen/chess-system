@@ -47,6 +47,7 @@ void Grid::processInput(const sf::Vector2i t_xy){
     }
 }
 
+
 void Grid::moveCell(const sf::Vector2i t_xy){
     if((t_xy.x && t_xy.y) > 0){
         std::pair<int,int> coordinates = std::make_pair(t_xy.x / 50, t_xy.y / 50);
@@ -56,7 +57,7 @@ void Grid::moveCell(const sf::Vector2i t_xy){
         auto prev_xy = selectedPiece->first->position;
         int x = coordinates.first, y = coordinates.second;
         //If move is not valid
-        if(!selectedPiece->first->isValid(x, y)){
+        if(!selectedPiece->first->isValid(x, y, grid[x][y])){
             gridState = GridState::AwaitingCellSelect;
         }
         // If empty cell or opponent, update piece

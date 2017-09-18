@@ -21,7 +21,7 @@ Chess::Chess(   const ChessTeam t_team,
 }  
 
 
-void Chess::move(const int x, const int y){
+void Chess::move(int x, int y){
     position = std::make_pair(x, y);
     icon.setPosition(x*50, y*50);
 }
