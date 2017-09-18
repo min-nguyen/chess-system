@@ -1,5 +1,5 @@
-#ifndef CASTLE_H
-#define CASTLE_H
+#ifndef BISHOP_H
+#define BISHOP_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,9 +9,9 @@
 #include <SFML/Graphics.hpp>
 #include "Chess.h"
 
-class Castle: public Chess{
+class Bishop: public Chess{
 public: 
-    Castle(   const ChessTeam t_team, 
+    Bishop(   const ChessTeam t_team, 
             sf::RenderWindow* t_window,
             std::pair<int, int> t_position);
 
@@ -22,8 +22,8 @@ public:
     };
     static std::map<ChessTeam, std::pair<int, int>> getSpriteXY(){
         std::map<ChessTeam, std::pair<int, int>> sprites;
-        sprites[ChessTeam::Blue] = std::make_pair(165, 0);
-        sprites[ChessTeam::Red] = std::make_pair(165, 46);
+        sprites[ChessTeam::Blue] = std::make_pair(109, 0);
+        sprites[ChessTeam::Red] = std::make_pair(109, 46);
         return sprites;
     };
     ChessTeam team;

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "Chess.h"
 #include "King.h"
+#include "Castle.h"
 #include "SpriteSheet.h"
 #include <utility>
 #include <vector>
@@ -31,6 +32,7 @@ public:
     void processInput(const sf::Vector2i t_xy);
     void selectCell(const sf::Vector2i t_xy);
     void moveCell(const sf::Vector2i t_xy);
+    
     PlayerState playerState;
     GridState gridState;
     

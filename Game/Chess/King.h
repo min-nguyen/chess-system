@@ -12,7 +12,6 @@
 class King: public Chess{
 public: 
     King(   const ChessTeam t_team, 
-            std::string t_fileName, 
             sf::RenderWindow* t_window,
             std::pair<int, int> t_position);
 
@@ -20,6 +19,12 @@ public:
     bool isValid(int x, int y);
     static std::string getFileName(){
         return "./chessIcons.png";
+    };
+    static std::map<ChessTeam, std::pair<int, int>> getSpriteXY(){
+        std::map<ChessTeam, std::pair<int, int>> sprites;
+        sprites[ChessTeam::Blue] = std::make_pair(0, 0);
+        sprites[ChessTeam::Red] = std::make_pair(0, 46);
+        return sprites;
     };
     ChessTeam team;
 private:

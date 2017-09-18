@@ -20,6 +20,7 @@ class Chess{
 public: 
     Chess(  const ChessTeam team, 
             std::string fileName, 
+            std::map<ChessTeam, std::pair<int, int>> t_spriteXY,
             sf::RenderWindow* window, 
             std::pair<int, int> t_position);
     //Generic functions
@@ -35,6 +36,7 @@ protected:
     sf::Sprite icon;
     SpriteSheet spriteMaker;
     sf::RenderWindow* window;
+
 private:
 }; 
 

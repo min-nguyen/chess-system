@@ -20,10 +20,12 @@ Grid::Grid(sf::RenderWindow* t_window):
             }
         }
 
-        std::shared_ptr<King> kingA(new King(ChessTeam::Blue, King::getFileName(), window, std::make_pair(0,0)));
-        std::shared_ptr<King> kingB(new King(ChessTeam::Red, King::getFileName(), window, std::make_pair(0,1)));
+        std::shared_ptr<King> kingA(new King(ChessTeam::Blue, window, std::make_pair(0,0)));
+        std::shared_ptr<King> kingB(new King(ChessTeam::Red, window, std::make_pair(0,1)));
+        std::shared_ptr<Castle> castleA(new Castle(ChessTeam::Blue, window, std::make_pair(5,5)));
         grid[0][0] = (std::make_pair(kingA, ChessTeam::Blue));
         grid[0][1] = (std::make_pair(kingB, ChessTeam::Red));
+        grid[5][5] = (std::make_pair(castleA, ChessTeam::Blue));
 }
 
 void Grid::drawGrid(){
@@ -55,26 +57,24 @@ void Grid::moveCell(const sf::Vector2i t_xy){
         int x = coordinates.first, y = coordinates.second;
         //If move is not valid
         if(!selectedPiece->first->isValid(x, y)){
-            selectedPiece = nullptr;
             gridState = GridState::AwaitingCellSelect;
         }
         // If empty cell or opponent, update piece
-        if(grid[x][y].second == ChessTeam::Empty || grid[x][y].second != selectedPiece->second){
+        else if(grid[x][y].second == ChessTeam::Empty || grid[x][y].second != selectedPiece->second){
             //Update piece position
             selectedPiece->first->move(x, y);
             //Update grid
             grid[x][y] = (*selectedPiece);
             grid[prev_xy.first][prev_xy.second] = std::make_pair(std::shared_ptr<Chess>(nullptr), ChessTeam::Empty);
             //Reset selected piece and grid state
-            selectedPiece = nullptr;
             gridState = GridState::AwaitingCellSelect;
             playerState = (playerState == PlayerState::Blue) ? PlayerState::Red : PlayerState::Blue;
         }
         // If cell contains own piece
         else {
             gridState = GridState::AwaitingCellSelect;
-            selectedPiece = nullptr;
         }
+        selectedPiece = nullptr;
     }
 }
 
