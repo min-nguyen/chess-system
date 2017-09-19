@@ -15,6 +15,12 @@ void Queen::draw(){
 
 
 bool Queen::isValid(int x, int y, std::pair<std::shared_ptr<Chess>, ChessTeam> t){
+    if(abs(position.first - x) == abs(position.second - y)) {
+        return true;
+    }
+    if(x == position.first || y == position.second){
+        return true;
+    }
     return false;
 }
 

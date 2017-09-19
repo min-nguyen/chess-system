@@ -25,12 +25,12 @@ public:
     };
     static std::map<ChessTeam, std::pair<int, int>> getSpriteXY(){
         std::map<ChessTeam, std::pair<int, int>> sprites;
-        sprites[ChessTeam::Blue] = std::make_pair(220, 0);
-        sprites[ChessTeam::Red] = std::make_pair(220, 46);
+        sprites[ChessTeam::Blue] = std::make_pair(278, 0);
+        sprites[ChessTeam::Red] = std::make_pair(278, 46);
         return sprites;
     };
 private:
-    const std::pair<int, int> initialPosition;
+
 }; 
 
   

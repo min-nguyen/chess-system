@@ -19,11 +19,8 @@ Grid::Grid(sf::RenderWindow* t_window):
                 
             }
         }
+        newBoard();
 
-        std::shared_ptr<Pawn> pawnA(new Pawn(ChessTeam::Red, window, std::make_pair(5,5)));
-        std::shared_ptr<Pawn> pawnB(new Pawn(ChessTeam::Blue, window, std::make_pair(6,6)));
-        grid[5][5] = (std::make_pair(pawnA, ChessTeam::Red));
-        grid[6][6] = (std::make_pair(pawnB, ChessTeam::Blue));
 }
 
 void Grid::drawGrid(){
@@ -110,5 +107,52 @@ void Grid::selectCell(const sf::Vector2i t_xy){
                 break;
         }
     }
+}
+
+void Grid::newBoard(){
+    //Pawns
+    for(int i = 0; i < 10; i++){
+        std::shared_ptr<Pawn> pawnRed(new Pawn(ChessTeam::Red, window, std::make_pair(i, 1)));
+        std::shared_ptr<Pawn> pawnBlue(new Pawn(ChessTeam::Blue, window, std::make_pair(i, 8)));
+        grid[i][1] = (std::make_pair(pawnRed, ChessTeam::Red));
+        grid[i][8] = (std::make_pair(pawnBlue, ChessTeam::Blue));
+    }
+    //King
+    std::shared_ptr<King> kingRed(new King(ChessTeam::Red, window, std::make_pair(4, 0)));
+    std::shared_ptr<King> kingBlue(new King(ChessTeam::Blue, window, std::make_pair(5, 9)));
+    grid[4][0] = (std::make_pair(kingRed, ChessTeam::Red));
+    grid[5][9] = (std::make_pair(kingBlue, ChessTeam::Blue));
+    //Queen
+    std::shared_ptr<Queen> queenRed(new Queen(ChessTeam::Red, window, std::make_pair(5, 0)));
+    std::shared_ptr<Queen> queenBlue(new Queen(ChessTeam::Blue, window, std::make_pair(4, 9)));
+    grid[5][0] = (std::make_pair(queenRed, ChessTeam::Red));
+    grid[4][9] = (std::make_pair(queenBlue, ChessTeam::Blue));
+    //Bishops
+    std::shared_ptr<Bishop> bishopARed(new Bishop(ChessTeam::Red, window, std::make_pair(6, 0)));
+    std::shared_ptr<Bishop> bishopBRed(new Bishop(ChessTeam::Red, window, std::make_pair(3, 0)));
+    std::shared_ptr<Bishop> bishopABlue(new Bishop(ChessTeam::Blue, window, std::make_pair(6, 9)));
+    std::shared_ptr<Bishop> bishopBBlue(new Bishop(ChessTeam::Blue, window, std::make_pair(3, 9)));
+    grid[6][0] = (std::make_pair(bishopARed, ChessTeam::Red));
+    grid[3][0] = (std::make_pair(bishopBRed, ChessTeam::Red));
+    grid[6][9] = (std::make_pair(bishopABlue, ChessTeam::Blue));
+    grid[3][9] = (std::make_pair(bishopBBlue, ChessTeam::Blue));
+    //Castles
+    std::shared_ptr<Castle> castleARed(new Castle(ChessTeam::Red, window, std::make_pair(0, 0)));
+    std::shared_ptr<Castle> castleBRed(new Castle(ChessTeam::Red, window, std::make_pair(9, 0)));
+    std::shared_ptr<Castle> castleABlue(new Castle(ChessTeam::Blue, window, std::make_pair(0, 9)));
+    std::shared_ptr<Castle> castleBBlue(new Castle(ChessTeam::Blue, window, std::make_pair(9, 9)));
+    grid[0][0] = (std::make_pair(castleARed, ChessTeam::Red));
+    grid[9][0] = (std::make_pair(castleBRed, ChessTeam::Red));
+    grid[0][9] = (std::make_pair(castleABlue, ChessTeam::Blue));
+    grid[9][9] = (std::make_pair(castleBBlue, ChessTeam::Blue));
+    //Knights
+    std::shared_ptr<Knight> knightARed(new Knight(ChessTeam::Red, window, std::make_pair(1, 0)));
+    std::shared_ptr<Knight> knightBRed(new Knight(ChessTeam::Red, window, std::make_pair(8, 0)));
+    std::shared_ptr<Knight> knightABlue(new Knight(ChessTeam::Blue, window, std::make_pair(1, 9)));
+    std::shared_ptr<Knight> knightBBlue(new Knight(ChessTeam::Blue, window, std::make_pair(8, 9)));
+    grid[1][0] = (std::make_pair(knightARed, ChessTeam::Red));
+    grid[8][0] = (std::make_pair(knightBRed, ChessTeam::Red));
+    grid[1][9] = (std::make_pair(knightABlue, ChessTeam::Blue));
+    grid[8][9] = (std::make_pair(knightBBlue, ChessTeam::Blue));
 }
 

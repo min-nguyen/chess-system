@@ -7,6 +7,9 @@
 #include "King.h"
 #include "Castle.h"
 #include "Pawn.h"
+#include "Knight.h"
+#include "Bishop.h"
+#include "Queen.h"
 #include "SpriteSheet.h"
 #include <utility>
 #include <vector>
@@ -38,6 +41,7 @@ public:
     GridState gridState;
     
 private:
+    void newBoard();
     SpriteSheet spriteMaker;
     std::array<std::array<ChessPiece, 10>, 10> grid;
     sf::Sprite chessGrid;

@@ -16,15 +16,6 @@ bool Pawn::isValid(int x, int y, std::pair<std::shared_ptr<Chess>, ChessTeam> t)
     if(t.second == team){
         return false;
     }
-    if(t.second == ChessTeam::Red){
-        printf("red\n");
-    }
-    if(t.second == ChessTeam::Blue){
-        printf("blue\n");
-    }
-    if(t.second == ChessTeam::Empty){
-        printf("empty\n");
-    }
     //Check correct direction -- Blues move up
     if(team == ChessTeam::Red){
         //Check if attempt to take opponent piece
