@@ -20,12 +20,10 @@ Grid::Grid(sf::RenderWindow* t_window):
             }
         }
 
-        std::shared_ptr<King> kingA(new King(ChessTeam::Blue, window, std::make_pair(0,0)));
-        std::shared_ptr<King> kingB(new King(ChessTeam::Red, window, std::make_pair(0,1)));
-        std::shared_ptr<Castle> castleA(new Castle(ChessTeam::Blue, window, std::make_pair(5,5)));
-        grid[0][0] = (std::make_pair(kingA, ChessTeam::Blue));
-        grid[0][1] = (std::make_pair(kingB, ChessTeam::Red));
-        grid[5][5] = (std::make_pair(castleA, ChessTeam::Blue));
+        std::shared_ptr<Pawn> pawnA(new Pawn(ChessTeam::Red, window, std::make_pair(5,5)));
+        std::shared_ptr<Pawn> pawnB(new Pawn(ChessTeam::Blue, window, std::make_pair(6,6)));
+        grid[5][5] = (std::make_pair(pawnA, ChessTeam::Red));
+        grid[6][6] = (std::make_pair(pawnB, ChessTeam::Blue));
 }
 
 void Grid::drawGrid(){
@@ -39,6 +37,7 @@ void Grid::drawGrid(){
 }
 
 void Grid::processInput(const sf::Vector2i t_xy){
+   
     if(gridState == GridState::AwaitingCellSelect){
         selectCell(t_xy);
     }
@@ -51,13 +50,13 @@ void Grid::processInput(const sf::Vector2i t_xy){
 void Grid::moveCell(const sf::Vector2i t_xy){
     if((t_xy.x && t_xy.y) > 0){
         std::pair<int,int> coordinates = std::make_pair(t_xy.x / 50, t_xy.y / 50);
-        printf("%d %d \n", coordinates.first, coordinates.second);
 
         // Get previous coordinates and next coordinates
         auto prev_xy = selectedPiece->first->position;
         int x = coordinates.first, y = coordinates.second;
         //If move is not valid
-        if(!selectedPiece->first->isValid(x, y, grid[x][y])){
+        if(!(selectedPiece->first->isValid(x, y, grid[x][y]))){
+            printf("not valid\n");
             gridState = GridState::AwaitingCellSelect;
         }
         // If empty cell or opponent, update piece
@@ -74,12 +73,19 @@ void Grid::moveCell(const sf::Vector2i t_xy){
         // If cell contains own piece
         else {
             gridState = GridState::AwaitingCellSelect;
+            printf("contains own piece\n");
         }
         selectedPiece = nullptr;
     }
 }
 
 void Grid::selectCell(const sf::Vector2i t_xy){
+    if(playerState == PlayerState::Blue){
+        printf("blue team selected\n");
+    }
+    else{
+        printf("red team selected\n");
+    }
     if((t_xy.x && t_xy.y) > 0){
         std::pair<int,int> coordinates = std::make_pair(t_xy.x / 50, t_xy.y / 50);
 

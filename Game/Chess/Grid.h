@@ -6,6 +6,7 @@
 #include "Chess.h"
 #include "King.h"
 #include "Castle.h"
+#include "Pawn.h"
 #include "SpriteSheet.h"
 #include <utility>
 #include <vector>

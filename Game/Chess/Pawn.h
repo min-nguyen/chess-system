@@ -29,7 +29,6 @@ public:
         sprites[ChessTeam::Red] = std::make_pair(220, 46);
         return sprites;
     };
-    ChessTeam team;
 private:
     const std::pair<int, int> initialPosition;
 }; 

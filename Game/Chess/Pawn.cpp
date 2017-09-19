@@ -13,19 +13,55 @@ void Pawn::draw(){
 }
 
 bool Pawn::isValid(int x, int y, std::pair<std::shared_ptr<Chess>, ChessTeam> t){
-    return true;
-    // //Check correct direction
-    // if(team == ChessTeam::Blue && (position.first - y > 0)){
-    //     //Check if attempt to take opponent piece
-    //     if(x != position.first && ){
-           
-    //     }
-    //     //
-    //     if(initialPosition == position && ((position.first - y) == 1 || 2) )
-    //         return true; 
-   
-    // }
+    if(t.second == team){
+        return false;
+    }
+    if(t.second == ChessTeam::Red){
+        printf("red\n");
+    }
+    if(t.second == ChessTeam::Blue){
+        printf("blue\n");
+    }
+    if(t.second == ChessTeam::Empty){
+        printf("empty\n");
+    }
+    //Check correct direction -- Blues move up
+    if(team == ChessTeam::Red){
+        //Check if attempt to take opponent piece
+        if(((x == position.first + 1) || (x == position.first - 1)) && (y - position.second == 1)){
+            if((t.second != ChessTeam::Empty) ){
+                return true;
+            }
+        }
+        if(x == position.first){
+            //Check if pawn is at starting position
+            if((initialPosition == position) && (y - position.second == 2) ){
+                return true; 
+            }
+            //Check if default move forward by 1
+            if((y - position.second) == 1 && (x == position.first)){
+                return true;
+            }
+        }
+    }
+    else if(team == ChessTeam::Blue){
+        //Check if attempt to take opponent piece
+        if(((x == position.first + 1) || (x == (position.first - 1))) && ((position.second - y) == 1)) {
+          if((t.second != ChessTeam::Empty)){
+           return true;
+          }
+        }
+        if(x == position.first){
+            //Check if pawn is at starting position
+            if((initialPosition == position) && ((position.second - y) == 2) ){
+                return true; 
+            }
+            //Check if default move forward by 1
+            if((position.second - y) == 1){
+                return true;
+            }
+        }
+    }
 
-
-    // return (position.first - x == position.second - y) ? true : false;
+    return false;
 }

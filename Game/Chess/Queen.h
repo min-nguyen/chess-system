@@ -1,17 +1,20 @@
-#ifndef BISHOP_H
-#define BISHOP_H
+#ifndef QUEEN_H
+#define QUEEN_H
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "Chess.h"
+#include "SpriteSheet.h"
 #include <utility>
 #include <vector>
 #include <string>
 #include <SFML/Graphics.hpp>
-#include "Chess.h"
+#include <array>
+#include <memory>
 
-class Bishop: public Chess{
+class Queen: public Chess{
 public: 
-    Bishop(   const ChessTeam t_team, 
+    Queen(   const ChessTeam t_team, 
             sf::RenderWindow* t_window,
             std::pair<int, int> t_position);
 
@@ -22,12 +25,12 @@ public:
     };
     static std::map<ChessTeam, std::pair<int, int>> getSpriteXY(){
         std::map<ChessTeam, std::pair<int, int>> sprites;
-        sprites[ChessTeam::Blue] = std::make_pair(109, 0);
-        sprites[ChessTeam::Red] = std::make_pair(109, 46);
+        sprites[ChessTeam::Blue] = std::make_pair(220, 0);
+        sprites[ChessTeam::Red] = std::make_pair(220, 46);
         return sprites;
     };
 private:
-
+    const std::pair<int, int> initialPosition;
 }; 
 
   
