@@ -102,12 +102,11 @@ void Grid::moveCell(const sf::Vector2i t_xy){
         std::pair<int,int> coordinates = std::make_pair(t_xy.x / 50, t_xy.y / 50);
 
         // Get previous coordinates and next coordinates
-        
         int x = coordinates.first, y = coordinates.second;
-        //Current piece
+        //Current piece - Move unique pointer
         std::unique_ptr<Chess> currentPiece = std::move(selectedPiece->first);
         auto prev_xy = currentPiece->position;
-        //Dest piece
+        //Dest piece - Simply create pointer to copied value of unique pointer
         Chess* destinationPiece;
         if((grid[x][y].second) == ChessTeam::Empty){
             destinationPiece = nullptr;
@@ -133,7 +132,7 @@ void Grid::moveCell(const sf::Vector2i t_xy){
             gridState = GridState::AwaitingCellSelect;
             playerState = (playerState == PlayerState::Blue) ? PlayerState::Red : PlayerState::Blue;
         }
-        // // // If cell contains own piece
+        // If cell contains own piece
         else {
             grid[prev_xy.first][prev_xy.second].first = std::move(currentPiece);
             gridState = GridState::AwaitingCellSelect;

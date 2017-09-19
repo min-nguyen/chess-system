@@ -9,7 +9,6 @@
 #include <thread>
 #include "Grid.h"
 #include "Chess.h"
-#include "King.h"
 
 void createClient(Client& client){
     client.run();
@@ -24,10 +23,13 @@ int main(int argc, char* argv[]) {
     sf::RenderTexture renderTexture;
     sf::Clock clock;
     sf::Time elapsedTime = clock.restart();
+    
+    Client client; 
+    sf::Thread runClient(&createClient, std::ref(client));
+    runClient.launch(); 
 
     Grid grid(&window);
 
- 
     while (window.isOpen())
     {   
             clock.restart();
@@ -47,8 +49,6 @@ int main(int argc, char* argv[]) {
 
             window.display();
             window.clear();
-            
-        
     }
 
     return 0;
