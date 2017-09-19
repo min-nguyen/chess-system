@@ -36,31 +36,6 @@ void Client::clientconnect(struct addrinfo hints, struct addrinfo* res, int& soc
   }
 }
 
-char** deserializeMap(char* buffer){
-  char** ary = new char*[20];
-  for(int i = 0; i < 20; ++i)
-      ary[i] = new char[20];
-
-	for(int i = 0; i < 20; i ++){
-		for (int j = 0; j < 20; j++){
-      ary[i][j] = *(buffer + (i*10) + j);
-    }
-  }
-  return ary;
-}
-
-bool Client::mapQueueIsEmpty(){
-  return mapQueue.empty();
-}
-
-char** Client::getMap(){
-  if(!mapQueue.empty()){
-    char** front = mapQueue.front();
-    mapQueue.pop();
-    return front;
-  } 
-}
-
 void Client::receive_server(int server_sockfd, Client* client){
   char buffer[400]; 
   while(1){
@@ -73,9 +48,9 @@ void Client::receive_server(int server_sockfd, Client* client){
                   return;
                   break;
       default		: char* check = buffer;
+                  //Server sent game output action
                   if(client->connected){
-                      char** map = deserializeMap(check);
-                      client->mapQueue.push(map);
+                      client->OUTbuffer.push(*buffer);
                   }
                   //Server requires name
                   else if(*check == '0'){
@@ -85,12 +60,6 @@ void Client::receive_server(int server_sockfd, Client* client){
                   else if(*check == '1'){
                     std::cout << "connected\n" << std::flush;
                     client->connected = true;
-                  }
-                  //Server sent game output action
-                  else{
-                    for(int i = 20; i < 20; i++){
-                      std::cout << buffer[i] << std::flush;
-                    }
                   }
                   memset(buffer, 0, 400*sizeof(char));
                   break;
@@ -115,7 +84,6 @@ void Client::send_server(int server_sockfd, Client* client){
       char c = client->OUTbuffer.front();
       client->OUTbuffer.pop();
       send(server_sockfd, &c, sizeof(char), 0);
-
     }
   }
 }

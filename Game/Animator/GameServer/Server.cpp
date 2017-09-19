@@ -182,6 +182,44 @@ void makeRoom(std::vector<Room*>* rooms, int id){
 	rooms->push_back(room);
 }
 
+void serializeRoom(Room* room, char* data){
+	int* ptr = (int*) data;
+	*ptr = room->id; 
+	++ptr;
+	*ptr = room->people;
+	++ptr;
+}
+
+void deserializeRoom(char* data, Room* room){
+	int* ptr = (int*) data;
+	room->id = *ptr; 
+	++ptr;
+	room->people = *ptr;
+}
+
+void serializeMap(char* ptr, int map[20][20]){
+	for(int i = 0; i < 20; i ++){
+		for (int j = 0; j < 20; j++){
+			*ptr = (char) map[i][j];
+			printf("%d", *ptr); 
+			ptr++;
+			std::cout << std::flush;
+		}
+	}
+}
+
+void deserializeMap(char* ptr){
+	int* de = (int*) ptr;
+	for(int i = 0; i < 20; i ++){
+		for (int j = 0; j < 20; j++){
+			*de = *ptr;
+			ptr++;
+			de++;
+			std::cout << *de << " " << std::flush;
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	// Create file descriptor sets, one for reading and one for updating the next read
@@ -220,6 +258,16 @@ int main(int argc, char *argv[])
 	struct sockaddr* 	client_sockaddr = (struct sockaddr*) malloc(sizeof(struct sockaddr));
 	uint* 				client_addrlen 	= (uint*) malloc(sizeof(uint));
 	int					client_sockfd	= -1;
+
+	Room room;
+	char* ptr = (char*) malloc(400*sizeof(char));
+	
+	for(int k = 0; k < 20; k++){
+		for (int l = 0; l < 20; l++){
+			room.map[k][l] = 0;
+		}
+	}
+	serializeMap(ptr, room.map);
 
 	while(1){
 		reads_fd = connections_fd;

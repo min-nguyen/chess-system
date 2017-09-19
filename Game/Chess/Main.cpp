@@ -9,6 +9,7 @@
 #include <thread>
 #include "Grid.h"
 #include "Chess.h"
+#include "HostRoom.h"
 
 void createClient(Client& client){
     client.run();
@@ -24,28 +25,21 @@ int main(int argc, char* argv[]) {
     sf::Clock clock;
     sf::Time elapsedTime = clock.restart();
     
-    Client client; 
-    sf::Thread runClient(&createClient, std::ref(client));
-    runClient.launch(); 
+    // Client client; 
+    // sf::Thread runClient(&createClient, std::ref(client));
+    // runClient.launch(); 
 
-    Grid grid(&window);
+    HostRoom host(&window);
 
     while (window.isOpen())
     {   
             clock.restart();
             sf::Event event;
             while (window.pollEvent(event)){
-                //Process our character actions
-                if(sf::Mouse::isButtonPressed(sf::Mouse::Left)){
-                    sf::Vector2i localPosition = sf::Mouse::getPosition(window);
-                    grid.processInput(localPosition);
-                }
                 if(event.type == sf::Event::Closed)
                     window.close();
             }
-            // //Update and draw both characters
-            // sf::Time now = clock.getElapsedTime();
-            grid.drawGrid();
+            host.draw();
 
             window.display();
             window.clear();

@@ -12,8 +12,6 @@ public:
         std::cout << this << "\n" << std::flush;
     };
     char inBuffer();
-    char** getMap();
-    bool mapQueueIsEmpty();
     bool isEmpty(); 
     bool isConnected();
     void outBuffer(char c);
@@ -24,7 +22,6 @@ private:
     void clientconnect(struct addrinfo hints, struct addrinfo* res, int& sockfd);
     static void receive_server(int server_sockfd, Client* client);
     static void send_server(int server_sockfd, Client* client);
-    std::queue<char**> mapQueue;
     std::queue<char> INbuffer;
     std::queue<char> OUTbuffer;
 };
