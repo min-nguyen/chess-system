@@ -14,7 +14,7 @@ void Knight::draw(){
 }
 
 
-bool Knight::isValid(int x, int y, std::pair<std::shared_ptr<Chess>, ChessTeam> t){
+bool Knight::isValid(int x, int y, std::pair<Chess*, ChessTeam> t){
     if(abs(x - position.first) == 2 ){
         if (abs(y - position.second) == 1)
             return true;

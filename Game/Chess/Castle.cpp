@@ -13,6 +13,6 @@ void Castle::draw(){
     window->draw(icon);
 }
 
-bool Castle::isValid(int x, int y, std::pair<std::shared_ptr<Chess>, ChessTeam> t){
+bool Castle::isValid(int x, int y, std::pair<Chess*, ChessTeam> t){
     return (position.first == x || position.second == y) ? true : false;
 }

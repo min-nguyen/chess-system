@@ -14,7 +14,7 @@ void King::draw(){
 }
 
 
-bool King::isValid(int x, int y, std::pair<std::shared_ptr<Chess>, ChessTeam> t){
+bool King::isValid(int x, int y, std::pair<Chess*, ChessTeam> t){
     auto pair = std::make_pair(position.first - x, position.second - y);
     int xMove = abs(x - position.first);
     int yMove = abs(y - position.second);

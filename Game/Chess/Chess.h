@@ -26,10 +26,9 @@ public:
             std::pair<int, int> t_position);
     //Generic functions
     void move(int x, int y);
-    
     //Abstract functions
-    virtual void draw() = 0;
-    virtual bool isValid(int x, int y, std::pair<std::shared_ptr<Chess>, ChessTeam> t) = 0;
+    virtual void draw();
+    virtual bool isValid(int x, int y, std::pair<Chess*, ChessTeam> t);
     //Chess piece properties
     std::pair<int, int> position;
     const ChessTeam team;

@@ -15,14 +15,67 @@ Grid::Grid(sf::RenderWindow* t_window):
         //Initialise empty grid of smart null ptrs
         for(auto itA = grid.begin(); itA != grid.end(); ++itA){
             for(auto itB = itA->begin(); itB != itA->end(); ++itB){
-                *itB = std::make_pair(std::shared_ptr<Chess>(nullptr), ChessTeam::Empty);
+                *itB = std::make_pair(std::unique_ptr<Chess>(nullptr), ChessTeam::Empty);
                 
             }
         }
         newBoard();
 
+        // std::array<std::array<std::pair<std::unique_ptr<Chess>, ChessTeam>, 10>, 10> testarray;
+        // std::unique_ptr<Pawn> p(new Pawn(ChessTeam::Red, window, std::make_pair(5, 1)));
+        // testarray[5][5] =  std::make_pair(std::move(p), ChessTeam::Blue);
 }
 
+void Grid::newBoard(){
+    //Pawns
+    for(int i = 0; i < 10; i++){
+        std::unique_ptr<Pawn> pawnRed(new Pawn(ChessTeam::Red, window, std::make_pair(i, 1)));
+        std::unique_ptr<Pawn> pawnBlue(new Pawn(ChessTeam::Blue, window, std::make_pair(i, 8)));
+        grid[i][1] = (std::make_pair(std::move(pawnRed), ChessTeam::Red));
+        grid[i][8] = (std::make_pair(std::move(pawnBlue), ChessTeam::Blue));
+    }
+    //King
+    std::unique_ptr<King> kingRed(new King(ChessTeam::Red, window, std::make_pair(4, 0)));
+    std::unique_ptr<King> kingBlue(new King(ChessTeam::Blue, window, std::make_pair(5, 9)));
+    grid[4][0] = (std::make_pair(std::move(kingRed), ChessTeam::Red));
+    grid[5][9] = (std::make_pair(std::move(kingBlue), ChessTeam::Blue));
+    //Queen
+    std::unique_ptr<Queen> queenRed(new Queen(ChessTeam::Red, window, std::make_pair(5, 0)));
+    std::unique_ptr<Queen> queenBlue(new Queen(ChessTeam::Blue, window, std::make_pair(4, 9)));
+    grid[5][0] = (std::make_pair(std::move(queenRed), ChessTeam::Red));
+    grid[4][9] = (std::make_pair(std::move(queenBlue), ChessTeam::Blue));
+    //Bishops
+    std::unique_ptr<Bishop> bishopARed(new Bishop(ChessTeam::Red, window, std::make_pair(6, 0)));
+    std::unique_ptr<Bishop> bishopBRed(new Bishop(ChessTeam::Red, window, std::make_pair(3, 0)));
+    std::unique_ptr<Bishop> bishopABlue(new Bishop(ChessTeam::Blue, window, std::make_pair(6, 9)));
+    std::unique_ptr<Bishop> bishopBBlue(new Bishop(ChessTeam::Blue, window, std::make_pair(3, 9)));
+    grid[6][0] = (std::make_pair(std::move(bishopARed), ChessTeam::Red));
+    grid[3][0] = (std::make_pair(std::move(bishopBRed), ChessTeam::Red));
+    grid[6][9] = (std::make_pair(std::move(bishopABlue), ChessTeam::Blue));
+    grid[3][9] = (std::make_pair(std::move(bishopBBlue), ChessTeam::Blue));
+    //Castles
+    std::unique_ptr<Castle> castleARed(new Castle(ChessTeam::Red, window, std::make_pair(0, 0)));
+    std::unique_ptr<Castle> castleBRed(new Castle(ChessTeam::Red, window, std::make_pair(9, 0)));
+    std::unique_ptr<Castle> castleABlue(new Castle(ChessTeam::Blue, window, std::make_pair(0, 9)));
+    std::unique_ptr<Castle> castleBBlue(new Castle(ChessTeam::Blue, window, std::make_pair(9, 9)));
+    grid[0][0] = (std::make_pair(std::move(castleARed), ChessTeam::Red));
+    grid[9][0] = (std::make_pair(std::move(castleBRed), ChessTeam::Red));
+    grid[0][9] = (std::make_pair(std::move(castleABlue), ChessTeam::Blue));
+    grid[9][9] = (std::make_pair(std::move(castleBBlue), ChessTeam::Blue));
+    //Knights
+    std::unique_ptr<Knight> knightARed(new Knight(ChessTeam::Red, window, std::make_pair(1, 0)));
+    std::unique_ptr<Knight> knightBRed(new Knight(ChessTeam::Red, window, std::make_pair(8, 0)));
+    std::unique_ptr<Knight> knightABlue(new Knight(ChessTeam::Blue, window, std::make_pair(1, 9)));
+    std::unique_ptr<Knight> knightBBlue(new Knight(ChessTeam::Blue, window, std::make_pair(8, 9)));
+    grid[1][0] = (std::make_pair(std::move(knightARed), ChessTeam::Red));
+    grid[8][0] = (std::make_pair(std::move(knightBRed), ChessTeam::Red));
+    grid[1][9] = (std::make_pair(std::move(knightABlue), ChessTeam::Blue));
+    grid[8][9] = (std::make_pair(std::move(knightBBlue), ChessTeam::Blue));
+}
+
+
+
+// std::pair<std::unique_ptr<Chess>, ChessTeam>
 void Grid::drawGrid(){
     window->draw(chessGrid);
     for(auto itA = grid.begin(); itA != grid.end(); ++itA){
@@ -49,26 +102,40 @@ void Grid::moveCell(const sf::Vector2i t_xy){
         std::pair<int,int> coordinates = std::make_pair(t_xy.x / 50, t_xy.y / 50);
 
         // Get previous coordinates and next coordinates
-        auto prev_xy = selectedPiece->first->position;
+        
         int x = coordinates.first, y = coordinates.second;
+        //Current piece
+        std::unique_ptr<Chess> currentPiece = std::move(selectedPiece->first);
+        auto prev_xy = currentPiece->position;
+        //Dest piece
+        Chess* destinationPiece;
+        if((grid[x][y].second) == ChessTeam::Empty){
+            destinationPiece = nullptr;
+        }
+        else{
+            destinationPiece = &*(grid[x][y].first);
+        }
+        std::pair<Chess*, ChessTeam> dest = std::make_pair(destinationPiece, grid[x][y].second);
         //If move is not valid
-        if(!(selectedPiece->first->isValid(x, y, grid[x][y]))){
+        if(!currentPiece->isValid(x, y, dest)){
             printf("not valid\n");
+            grid[prev_xy.first][prev_xy.second].first = std::move(currentPiece);
             gridState = GridState::AwaitingCellSelect;
         }
         // If empty cell or opponent, update piece
-        else if(grid[x][y].second == ChessTeam::Empty || grid[x][y].second != selectedPiece->second){
+        else if(grid[x][y].second == ChessTeam::Empty || grid[x][y].second != currentPiece->team){
             //Update piece position
-            selectedPiece->first->move(x, y);
+            currentPiece->move(x, y);
             //Update grid
-            grid[x][y] = (*selectedPiece);
-            grid[prev_xy.first][prev_xy.second] = std::make_pair(std::shared_ptr<Chess>(nullptr), ChessTeam::Empty);
+            grid[x][y] = std::make_pair(std::move(currentPiece), currentPiece->team);
+            grid[prev_xy.first][prev_xy.second] = std::make_pair(std::unique_ptr<Chess>(nullptr), ChessTeam::Empty);
             //Reset selected piece and grid state
             gridState = GridState::AwaitingCellSelect;
             playerState = (playerState == PlayerState::Blue) ? PlayerState::Red : PlayerState::Blue;
         }
-        // If cell contains own piece
+        // // // If cell contains own piece
         else {
+            grid[prev_xy.first][prev_xy.second].first = std::move(currentPiece);
             gridState = GridState::AwaitingCellSelect;
             printf("contains own piece\n");
         }
@@ -109,50 +176,5 @@ void Grid::selectCell(const sf::Vector2i t_xy){
     }
 }
 
-void Grid::newBoard(){
-    //Pawns
-    for(int i = 0; i < 10; i++){
-        std::shared_ptr<Pawn> pawnRed(new Pawn(ChessTeam::Red, window, std::make_pair(i, 1)));
-        std::shared_ptr<Pawn> pawnBlue(new Pawn(ChessTeam::Blue, window, std::make_pair(i, 8)));
-        grid[i][1] = (std::make_pair(pawnRed, ChessTeam::Red));
-        grid[i][8] = (std::make_pair(pawnBlue, ChessTeam::Blue));
-    }
-    //King
-    std::shared_ptr<King> kingRed(new King(ChessTeam::Red, window, std::make_pair(4, 0)));
-    std::shared_ptr<King> kingBlue(new King(ChessTeam::Blue, window, std::make_pair(5, 9)));
-    grid[4][0] = (std::make_pair(kingRed, ChessTeam::Red));
-    grid[5][9] = (std::make_pair(kingBlue, ChessTeam::Blue));
-    //Queen
-    std::shared_ptr<Queen> queenRed(new Queen(ChessTeam::Red, window, std::make_pair(5, 0)));
-    std::shared_ptr<Queen> queenBlue(new Queen(ChessTeam::Blue, window, std::make_pair(4, 9)));
-    grid[5][0] = (std::make_pair(queenRed, ChessTeam::Red));
-    grid[4][9] = (std::make_pair(queenBlue, ChessTeam::Blue));
-    //Bishops
-    std::shared_ptr<Bishop> bishopARed(new Bishop(ChessTeam::Red, window, std::make_pair(6, 0)));
-    std::shared_ptr<Bishop> bishopBRed(new Bishop(ChessTeam::Red, window, std::make_pair(3, 0)));
-    std::shared_ptr<Bishop> bishopABlue(new Bishop(ChessTeam::Blue, window, std::make_pair(6, 9)));
-    std::shared_ptr<Bishop> bishopBBlue(new Bishop(ChessTeam::Blue, window, std::make_pair(3, 9)));
-    grid[6][0] = (std::make_pair(bishopARed, ChessTeam::Red));
-    grid[3][0] = (std::make_pair(bishopBRed, ChessTeam::Red));
-    grid[6][9] = (std::make_pair(bishopABlue, ChessTeam::Blue));
-    grid[3][9] = (std::make_pair(bishopBBlue, ChessTeam::Blue));
-    //Castles
-    std::shared_ptr<Castle> castleARed(new Castle(ChessTeam::Red, window, std::make_pair(0, 0)));
-    std::shared_ptr<Castle> castleBRed(new Castle(ChessTeam::Red, window, std::make_pair(9, 0)));
-    std::shared_ptr<Castle> castleABlue(new Castle(ChessTeam::Blue, window, std::make_pair(0, 9)));
-    std::shared_ptr<Castle> castleBBlue(new Castle(ChessTeam::Blue, window, std::make_pair(9, 9)));
-    grid[0][0] = (std::make_pair(castleARed, ChessTeam::Red));
-    grid[9][0] = (std::make_pair(castleBRed, ChessTeam::Red));
-    grid[0][9] = (std::make_pair(castleABlue, ChessTeam::Blue));
-    grid[9][9] = (std::make_pair(castleBBlue, ChessTeam::Blue));
-    //Knights
-    std::shared_ptr<Knight> knightARed(new Knight(ChessTeam::Red, window, std::make_pair(1, 0)));
-    std::shared_ptr<Knight> knightBRed(new Knight(ChessTeam::Red, window, std::make_pair(8, 0)));
-    std::shared_ptr<Knight> knightABlue(new Knight(ChessTeam::Blue, window, std::make_pair(1, 9)));
-    std::shared_ptr<Knight> knightBBlue(new Knight(ChessTeam::Blue, window, std::make_pair(8, 9)));
-    grid[1][0] = (std::make_pair(knightARed, ChessTeam::Red));
-    grid[8][0] = (std::make_pair(knightBRed, ChessTeam::Red));
-    grid[1][9] = (std::make_pair(knightABlue, ChessTeam::Blue));
-    grid[8][9] = (std::make_pair(knightBBlue, ChessTeam::Blue));
-}
+
 

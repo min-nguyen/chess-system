@@ -25,3 +25,11 @@ void Chess::move(int x, int y){
     position = std::make_pair(x, y);
     icon.setPosition(x*50, y*50);
 }
+
+bool Chess::isValid(int x, int y, std::pair<Chess*, ChessTeam> t){
+    return false;
+}
+
+void Chess::draw(){
+
+}
