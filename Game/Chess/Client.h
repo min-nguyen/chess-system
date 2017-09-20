@@ -6,6 +6,10 @@
 #include <SFML/Graphics.hpp>
 #include <queue>
 
+enum class ClientState{
+    Connected, Hosting, Playing
+};
+
 class Client {
 public:
     Client(): connected(false){
