@@ -7,7 +7,14 @@
 #include <queue>
 
 enum class ClientState{
-    Connected, Hosting, Playing
+    Waiting, Connected, Hosting, Playing
+};
+
+enum class ServerMessage{
+    NameRequest = '1',
+    ConnectionConfirmed = '2',
+    NewHostRoom = '3',
+    GameEstablished = '4'
 };
 
 class Client {
@@ -16,10 +23,11 @@ public:
         std::cout << this << "\n" << std::flush;
     };
     char inBuffer();
+    void outBuffer(char c);
     bool isEmpty(); 
     bool isConnected();
-    void outBuffer(char c);
     void run();
+    ClientState clientState = ClientState::Waiting;
 private:
     bool connected;
     std::vector<int> rooms;

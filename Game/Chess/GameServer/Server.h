@@ -15,8 +15,29 @@
 #include <iostream>
 #include <vector>
 
-class Server {
+enum class ServerMessage{
+    NameRequest = '1',
+    ConnectionConfirmed = '2',
+    NewHostRoom = '3',
+    GameEstablished = '4'
+};
 
+enum class ClientMessage{
+    NameReceive = '0',
+    RoomRequest = '1',
+    RoomConnect = '2'
+};
+
+enum class PlayerState{
+    InLobby, Hosting, Playing
+};
+
+class Player {
+public:
+    Player(int t_fd, std::string t_name): fd(t_fd), name(t_name){};
+    int fd, opponent_fd = -1;
+    std::string name;
+    PlayerState state = PlayerState::InLobby;
 };
 
 

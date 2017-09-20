@@ -35,7 +35,10 @@ void Client::clientconnect(struct addrinfo hints, struct addrinfo* res, int& soc
     exit(EXIT_FAILURE);
   }
 }
-
+//Send to all non-hosting & non-playing clients
+//Confirm connection = 1#
+//New room = 2#<host-name>#<host-fd>
+//Playing = 3#<otherPlayersName>
 void Client::receive_server(int server_sockfd, Client* client){
   char buffer[400]; 
   while(1){
@@ -48,18 +51,29 @@ void Client::receive_server(int server_sockfd, Client* client){
                   return;
                   break;
       default		: char* check = buffer;
-                  //Server sent game output action
+                  printf("%s\n", buffer);
+                  // //Server sent game output action
                   if(client->connected){
                       client->OUTbuffer.push(*buffer);
                   }
                   //Server requires name
                   else if(*check == '0'){
-                    printf("%s\n", buffer);
+
                   }
                   //Client matched with opponent
                   else if(*check == '1'){
                     std::cout << "connected\n" << std::flush;
-                    client->connected = true;
+                   
+                  }
+                  //New host room, or confirmation of host room
+                  else if(*check == '2'){
+                    std::cout << "New host room created\n" << std::flush;
+                   
+                  }
+                  //Game established
+                  else if(*check == '3'){
+                    std::cout << "Game established\n" << std::flush;
+                   
                   }
                   memset(buffer, 0, 400*sizeof(char));
                   break;
@@ -80,11 +94,14 @@ void Client::send_server(int server_sockfd, Client* client){
   send(server_sockfd, msg, (int) sizeof(msg), 0);
   //Game input
   while(1){
-    if(!(client->OUTbuffer.empty())){
-      char c = client->OUTbuffer.front();
-      client->OUTbuffer.pop();
-      send(server_sockfd, &c, sizeof(char), 0);
-    }
+    std::getline(std::cin, msgstr);
+    strcpy(msg, msgstr.c_str());
+    send(server_sockfd, msg, (int) sizeof(msg), 0);
+    // if(!(client->OUTbuffer.empty())){
+    //   char c = client->OUTbuffer.front();
+    //   client->OUTbuffer.pop();
+    //   send(server_sockfd, &c, sizeof(char), 0);
+    // }
   }
 }
 

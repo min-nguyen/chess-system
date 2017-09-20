@@ -12,16 +12,11 @@
 #include <netinet/in.h>
 #include <iostream>
 #include <vector>
+#include "Server.h"
 
 #define MY_PORT "4006"
 #define BACKLOG 10
 #define BUF_LEN (2 << 16)
-
-struct Room {
-	int id;
-	int people;
-	int map[20][20];
-};
 
 void printhostname(){
 	char hostname[20];
@@ -100,32 +95,17 @@ void accept_client(	int* client_sockfd,
 	std::cout << "New client connected with sockfd " << *client_sockfd << "\n";
 }
 
-void request_clientname(std::map<int, std::string> client_names, int sockfd_client){
+void request_clientname(std::map<int, std::string> client_names, 
+						int sockfd_client){
 	send(sockfd_client, "Please enter your name", sizeof("Please enter your name"), 0);
 }
 
-void fd_pair_match(std::map<int, int>& fd_pairings, std::map<int, int>& fd_reversed, int client_fd){
-	std::cout << "<< I IS " << client_fd;
-	std::map<int,int>::iterator it;
-	it = fd_pairings.find(-1);
-	
-	if(it == fd_pairings.end()){
-		fd_pairings.insert(std::pair<int, int>(-1, client_fd));
-		printf("Client with fd %d is waiting for an opponent\n", client_fd);
-	}
-	else{
-		int second = it->second;
-		fd_pairings.insert(std::pair<int, int>(second, client_fd));
-		fd_reversed.insert(std::pair<int, int>(client_fd, second));
-		printf("Successful pair matching between %d and %d\n", second, client_fd);
-		send(second, "1: Connected", sizeof("1: Connected"), 0);
-		send(client_fd, "1: Connected", sizeof("1: Connected"), 0);
-	}
-}
+void fd_pair_send(	std::map<int, int>& fd_pairings, 
+					std::map<int, int>& fd_reversed, 
+					int client_fd, 
+					char* mapPtr){
 
-void fd_pair_send(std::map<int, int>& fd_pairings, std::map<int, int>& fd_reversed, int client_fd, char* mapPtr){
-	std::map<int,int>::iterator it;
-	it = fd_pairings.find(client_fd);
+	auto it = fd_pairings.find(client_fd);
 	printf("sending from %d \n", client_fd);
 	for(int i = 0; i < 20; i ++){
 		for (int j = 0; j < 20; j++){
@@ -146,40 +126,97 @@ void fd_pair_send(std::map<int, int>& fd_pairings, std::map<int, int>& fd_revers
 	}
 }
 
-void fd_pair_disconnect(std::map<int, int>& fd_pairings, std::map<int, int>& fd_reversed, fd_set& connections_fd, int client_fd){
-	std::map<int,int>::iterator it;
-	it = fd_pairings.find(client_fd);
+void gameDisconnect(std::vector<Player>& players, 
+						fd_set& connections_fd, 
+						int client_fd){
+
 	close(client_fd);
 	FD_CLR(client_fd, &connections_fd);
-	//Found client fd in key of fd_pairings
-	if(it != fd_pairings.end()){
-		int second = it->second;
-		fd_pairings.erase(it);
-		fd_reversed.erase(second);
-	}
-	else {
-		//Found client fd in value of unmatched fd_pairings
-		it = fd_pairings.find(-1);
-		if(it != fd_pairings.end()){
-			fd_pairings.erase(it);
-		}
-		//Found client fd in key of fd_reversed pairings
-		else{
-			it = fd_reversed.find(client_fd);
-			if(it != fd_reversed.end()){
-				int second = it->second;
-				fd_reversed.erase(it);
-				fd_pairings.erase(second);
+	for(auto it = players.begin(); it != players.end(); it++){
+		if(it->fd == client_fd){
+			//Refresh opponent, if exists
+			int opponent_fd = it->opponent_fd;
+			if(opponent_fd != -1){
+				for(auto itOpponent = players.begin(); itOpponent != players.end(); itOpponent++){
+					if(itOpponent->fd == opponent_fd){
+						itOpponent->state = PlayerState::InLobby;
+						itOpponent->opponent_fd = -1;
+						break;
+					}
+				}
 			}
+			players.erase(it);
+			return;
 		}
 	}
 }
 
-void makeRoom(std::vector<Room*>* rooms, int id){
-	Room* room = (Room*) malloc(sizeof(Room));
-	room->id = id;
-	room->people = 1;
-	rooms->push_back(room);
+void matchRoom(	std::vector<Player>& players, 
+				int opponent_fd,
+				std::string hostName){
+	for(auto itHost = players.begin(); itHost != players.end(); itHost++){
+		//Found host
+		if(itHost->name == hostName){
+			Player host = *itHost;
+			itHost->state = PlayerState::Playing;
+			itHost->opponent_fd = opponent_fd;
+			for(auto itOpponent = players.begin(); itOpponent != players.end(); itOpponent++){
+				if(itOpponent->fd == opponent_fd){
+					itOpponent->state = PlayerState::Playing;
+					itOpponent->opponent_fd = itHost->fd;
+					//Confirm connection
+					std::string confirmGameHost = "3#" + itOpponent->name;
+					std::string confirmGameOpponent  = "3#" + hostName;
+					send(host.fd, confirmGameHost.c_str(), 
+						strlen(confirmGameOpponent.c_str()) + 1, 0);
+					send(opponent_fd, confirmGameOpponent.c_str(), 
+						strlen(confirmGameOpponent.c_str()) + 1, 0);
+					return;
+				}
+			}
+			break;
+		}
+	}				
+}
+
+
+void notifyRoom(std::vector<Player>& players,
+				Player host){
+	//Update host state
+	for(auto it = players.begin(); it != players.end(); it++){
+		if(it->fd == host.fd){
+			it->state = PlayerState::Hosting;
+		}
+	}
+	//Notify lobby of new room				
+	std::string roomClientName = "2#" + host.name;		
+	for(auto it = players.begin(); it !=players.end(); it++){
+		if(it->state != PlayerState::Playing){
+			send(it->fd, roomClientName.c_str(), 
+				strlen(roomClientName.c_str()) + 1, 0);
+		}
+	}
+	//Confirm hosting to hoster				
+	send(host.fd, roomClientName.c_str(), 
+		strlen(roomClientName.c_str()) + 1, 0);
+}
+
+Player findPlayerByName(std::string name, std::vector<Player> players){
+	for(auto it = players.begin(); it != players.end(); it++){
+		if(it->name == name){
+			return *it;
+		}
+	}
+	return Player(-1, "");
+}
+
+Player findPlayerByFd(int fd, std::vector<Player> players){
+	for(auto it = players.begin(); it != players.end(); it++){
+		if(it->fd == fd){
+			return *it;
+		}
+	}
+	return Player(-1, "");
 }
 
 int main(int argc, char *argv[])
@@ -189,11 +226,7 @@ int main(int argc, char *argv[])
 	int max_fd;
 
 	// Client storage
-	std::vector<Room*> rooms;
-	std::map<int, std::string> client_names;
-	std::map<std::string, int> client_names_reversed;
-	std::map<int, int> fd_pairings;
-	std::map<int, int> fd_reversed;
+	std::vector<Player> players;
 	struct sockaddr_storage client_addresses;
 	socklen_t addr_size = sizeof client_addresses;
 
@@ -243,68 +276,52 @@ int main(int argc, char *argv[])
 					else{
 						//Client closed ws
 						if(!receive_client(i, buffer)){
-							std::cout << "0#Disconnected : " + client_names[i] << std::flush;
-							fd_pair_disconnect(fd_pairings, fd_reversed, connections_fd, i);
+							std::cout << "0#Disconnected : " + findPlayerByFd(i, players).name << std::flush;
+							// Need to rework this
+							gameDisconnect(players, connections_fd, i);
 						}
 						//Fd corresponding to client receives new I/O operation
 						else{
 							std::string clientMessage(buffer);
 							char* flag = buffer;
-							printf("%s", clientMessage.c_str());
+							printf("%s\n", clientMessage.c_str());
 							//New client
 							//Receive Format = 0#<clientName>
-							if(*flag == '0' && client_names.find(i) == client_names.end()){
-								std::string requestFdStr = clientMessage.erase(0, 2);
-								client_names[i] = buffer;
-								client_names_reversed[buffer] = i;
-								send(i, "1", strlen("1") + 1, 0);
+							if(*flag == '0' ){
+								if(findPlayerByFd(i, players).fd == -1){
+									std::string clientName = clientMessage.erase(0, 2);
+									Player newPlayer(i, clientName); 
+									players.push_back(newPlayer);
+									//Send connection confirmation
+									//Send Format = 1#<anything>
+									send(i, "1", strlen("1") + 1, 0);
+								}
+								else {
+
+								}
 							}
 							//Make a room request
 							//Receive Format = 1#<anything>
 							else if(*flag == '1'){
-								fd_pairings[i] = -1;
-								//Send to all non-hosting & non-playing clients
-								//Send Format = 2#<host-name>#<host-fd>
-								for(auto it = client_names.begin(); it != client_names.end(); it++){
-									auto isHosting = fd_pairings.find(it->first);
-									auto isOpponent = fd_reversed.find(it->first);
-									if(isHosting == fd_pairings.end() && isOpponent == fd_reversed.end()){
-										std::string roomClientName = "2#" + it->first;
-										send(it->first, roomClientName.c_str(), 
-												strlen(roomClientName.c_str()) + 1, 0);
-									}
+								Player host = findPlayerByFd(i, players);
+								if(host.fd != -1){
+									notifyRoom(players, host);
 								}
 							}
 							//Connect a room request
-							//Receive Format = 2#fd
+							//Receive Format = 2#<hostname>
 							else if(*flag == '2'){
-								std::string requestFdStr = clientMessage.erase(0, 2);
-								auto it = client_names_reversed.find(requestFdStr);
-								//Confirm game connection
-								//Send Format = 3#<otherPlayersName>
-								if(it != client_names_reversed.end()){
-									fd_pairings.insert(std::pair<int, int>(it->second, i));
-									fd_reversed.insert(std::pair<int, int>(i, it->second));
-									std::string confirmGameHost = "3#" + (client_names.find(i))->second;
-									std::string confirmGameOpponent  = "3#" + requestFdStr;
-									//Confirm to host
-									send(it->second, confirmGameHost.c_str(), 
-										strlen(confirmGameHost.c_str()) + 1, 0);
-									//Confirm to opponent
-									send(i, confirmGameOpponent.c_str(), 
-										strlen(confirmGameOpponent.c_str()) + 1, 0);
+								std::string hostName = clientMessage.erase(0, 2);
+								Player host = findPlayerByName(hostName, players);
+								if(host.fd != -1){
+									matchRoom(players, i, hostName);
 								}
 							}
 							//Game playing
-							else if(fd_pairings.find(i) != fd_pairings.end()){
-								if(fd_pairings[i] != -1){
-									send(fd_pairings[i], clientMessage.c_str(), 
-										strlen(clientMessage.c_str()) + 1, 0);
-								}
-							}
-							else if(fd_reversed.find(i) != fd_reversed.end()){
-								if(fd_reversed[i] != -1){
-									send(fd_reversed[i], clientMessage.c_str(), 
+							else {
+								Player isInGame = findPlayerByFd(i, players);
+								if(isInGame.fd != -1 && isInGame.opponent_fd != -1){
+									send(isInGame.opponent_fd, clientMessage.c_str(), 
 										strlen(clientMessage.c_str()) + 1, 0);
 								}
 							}
