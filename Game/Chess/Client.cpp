@@ -50,24 +50,45 @@ void Client::receive_server(int server_sockfd, Client* client){
   	  case (0)	: perror("Client - Server disconnected");
                   return;
                   break;
-      default		: char* check = buffer;
+      default		: char* flag = buffer;
+                  std::string clientMessage(buffer);
                   printf("%s\n", buffer);
-                  //Request name
-                  if(*check == '0'){
+                  //Request name to be sent
+                  if(*flag == '0'){
+                    printf("Write your name in the console\n");
+                    client->server_sendName();
                   }
-                  else if(*check == '1'){
-                    std::cout << "connected\n" << std::flush;
-                    client->clientState = ClientState::Connected;
+                  //Successful connection after name sent
+                  else if(*flag == '1'){
+                    if(client->clientState == ClientState::Waiting){
+                      std::string clientName = clientMessage.erase(0, 2);
+                      std::cout << "connected\n" << std::flush;
+                      client->clientState = ClientState::Connected;
+                      client->clientName = clientName;
+                    }
                   }
-                  //New host room, or confirmation of host room
-                  else if(*check == '2'){
-                    std::cout << "New host room created\n" << std::flush;
-                    client->clientState = ClientState::Hosting;
+                  else if(*flag == '2'){
+                    std::string hostName = clientMessage.erase(0, 2);
+                    //Confirmation of host room
+                    if(client->clientState == ClientState::HostAttempt){
+                      if(hostName == client->clientName){
+                        client->clientState = ClientState::Hosting;
+                        std::cout << "Successfully hosting room\n" << std::flush;
+                      }
+                    }
+                    //New host room
+                    else {
+                      std::cout << "New host room created\n" << std::flush;
+                      client->lobbyRooms.push(hostName);
+                    }
                   }
                   //Game established
-                  else if(*check == '3'){
-                    std::cout << "Game established\n" << std::flush;
-                    client->clientState = ClientState::Playing;
+                  else if(*flag == '3'){
+                    if(client->clientState == ClientState::Hosting || 
+                       client->clientState == ClientState::PlayAttempt){
+                        std::cout << "Game established\n" << std::flush;
+                        client->clientState = ClientState::Playing;
+                    }
                   }
                   memset(buffer, 0, 400*sizeof(char));
                   break;
@@ -75,13 +96,22 @@ void Client::receive_server(int server_sockfd, Client* client){
   }
 }
 
+void Client::server_sendName(){
+  std::string name;
+  std::getline(std::cin, name);
+  INbuffer.push("0#" + name);
+}
+
+void Client::server_requestRoom(){
+  INbuffer.push("1#");
+  clientState = ClientState::HostAttempt;
+}
+void Client::server_connectRoom(std::string name){
+  INbuffer.push("2#" + name);
+  clientState = ClientState::PlayAttempt;
+}
+
 void Client::send_server(int server_sockfd, Client* client){
-  // char msg[50];
-  // std::string msgstr; 
-  // //Write name
-  // std::getline(std::cin, msgstr);
-  // strcpy(msg, msgstr.c_str());
-  // send(server_sockfd, msg, (int) sizeof(msg), 0);
   //Game input
   while(1){
     if(!client->isEmpty()){
@@ -96,9 +126,15 @@ bool Client::isEmpty(){
   return INbuffer.empty();
 }
 
-void Client::outBuffer(std::string c){
-  OUTbuffer.push(c);
-  std::cout << OUTbuffer.front() << std::flush;
+std::string Client::lobbyRoomUpdate(){
+  if(lobbyRooms.empty()){
+    return "";
+  }
+  else {
+    std::string message = lobbyRooms.front();
+    lobbyRooms.pop();
+    return message;
+  }
 }
  
 void Client::run()

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "SpriteSheet.h"
+#include "Client.h"
 #include <utility>
 #include <vector>
 #include <string>
@@ -13,9 +14,10 @@
 
 class HostRoom{
 public: 
-    HostRoom(sf::RenderWindow* t_window);
+    HostRoom(sf::RenderWindow* t_window, Client& t_client);
     //Generic functions
     void draw();
+    void update();
     void insertRoom();
     void deleteRoom();
 protected:
@@ -24,6 +26,8 @@ protected:
     sf::Font font;
     std::vector<sf::Text> tabs;
 private:
+    sf::Text title;
+    Client client;
 }; 
 
 class Tab {

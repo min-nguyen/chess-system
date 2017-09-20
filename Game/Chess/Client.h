@@ -7,7 +7,7 @@
 #include <queue>
 
 enum class ClientState{
-    Waiting, Connected, Hosting, Playing
+    Waiting, Connected, HostAttempt, Hosting, PlayAttempt, Playing
 };
 
 enum class ServerMessage{
@@ -29,13 +29,14 @@ public:
         std::cout << this << "\n" << std::flush;
     };
     void run();
+    std::string clientName;
     ClientState clientState;
     //Messages to server - uses string buffer
-    void server_sendName(std::string name);
+    void server_sendName();
     void server_requestRoom();
     void server_connectRoom(std::string name);
     //Messages from server
-    void outBuffer(std::string c);
+    std::string lobbyRoomUpdate();  //Returns any new created rooms
     bool isEmpty(); 
 private:
     void clientconnect(struct addrinfo hints, struct addrinfo* res, int& sockfd);
@@ -44,7 +45,7 @@ private:
     //Messages towards server
     std::queue<std::string> INbuffer;
     //Messages from server
-    std::queue<std::string> OUTbuffer;
+    std::queue<std::string> lobbyRooms;
 };
 
 #endif

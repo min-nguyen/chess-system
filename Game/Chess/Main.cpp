@@ -20,30 +20,31 @@ void createClient(Client& client){
 
 int main(int argc, char* argv[]) {
 
-    // sf::RenderWindow window(sf::VideoMode(500, 500), "SFML works!");
-    // sf::RenderTexture renderTexture;
-    // sf::Clock clock;
-    // sf::Time elapsedTime = clock.restart();
+    sf::RenderWindow window(sf::VideoMode(500, 500), "SFML works!");
+    sf::RenderTexture renderTexture;
+    sf::Clock clock;
+    sf::Time elapsedTime = clock.restart();
     
     Client client; 
     sf::Thread runClient(&createClient, std::ref(client));
     runClient.launch(); 
 
-    // HostRoom host(&window);
+    // HostRoom host(&window, client);
 
-    // while (window.isOpen())
-    // {   
-    //         clock.restart();
-    //         sf::Event event;
-    //         while (window.pollEvent(event)){
-    //             if(event.type == sf::Event::Closed)
-    //                 window.close();
-    //         }
-    //         host.draw();
+    while (window.isOpen())
+    {   
+            clock.restart();
+            sf::Event event;
+            while (window.pollEvent(event)){
 
-    //         window.display();
-    //         window.clear();
-    // }
+                if(event.type == sf::Event::Closed)
+                    window.close();
+            }
+            // host.update();
+            // host.draw();
+            window.display();
+            window.clear();
+    }
 
     return 0;
 }

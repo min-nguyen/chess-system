@@ -315,7 +315,8 @@ int main(int argc, char *argv[])
 					accept_client(&client_sockfd, &sockfd_server, &client_addresses, &addr_size);
 					FD_SET(client_sockfd, &connections_fd);
 					max_fd = (max_fd < client_sockfd) ? client_sockfd : max_fd;
-					send(client_sockfd, "0#Please enter your name\n", sizeof("Please enter your name\n"), 0);
+					std::string welcomeMessage = "0#Awaiting-Name\n";
+					send(client_sockfd, welcomeMessage.c_str(), sizeof(welcomeMessage.c_str()), 0);
 				}
 				else{
 					//Client closed ws
