@@ -16,10 +16,10 @@
 #include <vector>
 
 enum class ServerMessage{
-    NameRequest = '1',
-    ConnectionConfirmed = '2',
-    NewHostRoom = '3',
-    GameEstablished = '4'
+    NameRequest = '0',
+    ConnectionConfirmed = '1',
+    NewHostRoom = '2',
+    GameEstablished = '3'
 };
 
 enum class ClientMessage{
@@ -40,6 +40,9 @@ public:
     PlayerState state = PlayerState::InLobby;
 };
 
+// class Server {
+
+// };
 
 
 #endif

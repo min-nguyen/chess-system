@@ -219,6 +219,50 @@ Player findPlayerByFd(int fd, std::vector<Player> players){
 	return Player(-1, "");
 }
 
+void matchFlag(std::vector<Player>& players, int fd, char* buffer){
+	std::string clientMessage(buffer);
+	char* flag = buffer;
+	printf("%s\n", clientMessage.c_str());
+	//New client
+	//Receive Format = 0#<clientName>
+	if(*flag == '0' ){
+		if(findPlayerByFd(fd, players).fd == -1){
+			std::string clientName = clientMessage.erase(0, 2);
+			Player newPlayer(fd, clientName); 
+			players.push_back(newPlayer);
+			//Send connection confirmation
+			//Send Format = 1#<anything>
+			send(fd, "1", strlen("1") + 1, 0);
+		}
+	}
+	//Make a room request
+	//Receive Format = 1#<anything>
+	else if(*flag == '1'){
+		Player host = findPlayerByFd(fd, players);
+		if(host.fd != -1){
+			notifyRoom(players, host);
+		}
+	}
+	//Connect a room request
+	//Receive Format = 2#<hostname>
+	else if(*flag == '2'){
+		std::string hostName = clientMessage.erase(0, 2);
+		Player host = findPlayerByName(hostName, players);
+		if(host.fd != -1){
+			matchRoom(players, fd, hostName);
+		}
+	}
+	//Game playing
+	//Any format
+	else {
+		Player isInGame = findPlayerByFd(fd, players);
+		if(isInGame.fd != -1 && isInGame.opponent_fd != -1){
+			send(isInGame.opponent_fd, clientMessage.c_str(), 
+				strlen(clientMessage.c_str()) + 1, 0);
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	// Create file descriptor sets, one for reading and one for updating the next read
@@ -264,72 +308,30 @@ int main(int argc, char *argv[])
     	}
 		//Iterate through client filedescriptors (ws connections)
 		for(int i = 0; i < max_fd + 1; i++){
-				//Server file descriptor (ws) receives new I/O operation
-				if(FD_ISSET(i, &reads_fd)){
-					//Fd for Server listener receives ws request
-					if (i == sockfd_server){
-						accept_client(&client_sockfd, &sockfd_server, &client_addresses, &addr_size);
-						FD_SET(client_sockfd, &connections_fd);
-						max_fd = (max_fd < client_sockfd) ? client_sockfd : max_fd;
-						send(client_sockfd, "0#Please enter your name\n", sizeof("Please enter your name\n"), 0);
+			//Server file descriptor (ws) receives new I/O operation
+			if(FD_ISSET(i, &reads_fd)){
+				//Fd for Server listener receives ws request
+				if (i == sockfd_server){
+					accept_client(&client_sockfd, &sockfd_server, &client_addresses, &addr_size);
+					FD_SET(client_sockfd, &connections_fd);
+					max_fd = (max_fd < client_sockfd) ? client_sockfd : max_fd;
+					send(client_sockfd, "0#Please enter your name\n", sizeof("Please enter your name\n"), 0);
+				}
+				else{
+					//Client closed ws
+					if(!receive_client(i, buffer)){
+						std::cout << "0#Disconnected : " + findPlayerByFd(i, players).name << std::flush;
+						gameDisconnect(players, connections_fd, i);
 					}
+					//Fd corresponding to client receives new I/O operation
 					else{
-						//Client closed ws
-						if(!receive_client(i, buffer)){
-							std::cout << "0#Disconnected : " + findPlayerByFd(i, players).name << std::flush;
-							// Need to rework this
-							gameDisconnect(players, connections_fd, i);
-						}
-						//Fd corresponding to client receives new I/O operation
-						else{
-							std::string clientMessage(buffer);
-							char* flag = buffer;
-							printf("%s\n", clientMessage.c_str());
-							//New client
-							//Receive Format = 0#<clientName>
-							if(*flag == '0' ){
-								if(findPlayerByFd(i, players).fd == -1){
-									std::string clientName = clientMessage.erase(0, 2);
-									Player newPlayer(i, clientName); 
-									players.push_back(newPlayer);
-									//Send connection confirmation
-									//Send Format = 1#<anything>
-									send(i, "1", strlen("1") + 1, 0);
-								}
-								else {
-
-								}
-							}
-							//Make a room request
-							//Receive Format = 1#<anything>
-							else if(*flag == '1'){
-								Player host = findPlayerByFd(i, players);
-								if(host.fd != -1){
-									notifyRoom(players, host);
-								}
-							}
-							//Connect a room request
-							//Receive Format = 2#<hostname>
-							else if(*flag == '2'){
-								std::string hostName = clientMessage.erase(0, 2);
-								Player host = findPlayerByName(hostName, players);
-								if(host.fd != -1){
-									matchRoom(players, i, hostName);
-								}
-							}
-							//Game playing
-							else {
-								Player isInGame = findPlayerByFd(i, players);
-								if(isInGame.fd != -1 && isInGame.opponent_fd != -1){
-									send(isInGame.opponent_fd, clientMessage.c_str(), 
-										strlen(clientMessage.c_str()) + 1, 0);
-								}
-							}
-							memset(buffer, 0, 50*sizeof(char));
-						}
+						matchFlag(players, i, buffer);
 					}
+					memset(buffer, 0, 50*sizeof(char));
+					
 				}
 			}
+		}
 	}
 	return 0;
 }

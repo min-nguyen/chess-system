@@ -13,10 +13,29 @@ void Pawn::draw(){
 }
 
 bool Pawn::isValid(int x, int y, std::pair<Chess*, ChessTeam> t){
-    // if(t.second == team){
-    //     return false;
-    // }
-    // //Check correct direction -- Blues move up
+    if(t.second == team){
+        return false;
+    }
+    //One move up
+    if((team == ChessTeam::Red && (y - position.second == 1)) || 
+                (team == ChessTeam::Blue && (position.second - y == 1))){
+        //Check if attempt to take opponent piece            
+        if(abs(x - position.first) == 1 && (t.second != ChessTeam::Empty && t.second != team) ){
+            return true;
+        }
+        //Check if standard move
+        else if (x == position.first && t.second == ChessTeam::Empty){
+            return true;
+        }        
+    }
+    //Two moves up
+    if((team == ChessTeam::Red && (y - position.second == 2)) || 
+            (team == ChessTeam::Blue && (position.second - y == 2))){
+            if(position == initialPosition && t.second == ChessTeam::Empty){
+                return true;
+            }     
+    }
+
     // if(team == ChessTeam::Red){
     //     //Check if attempt to take opponent piece
     //     if(((x == position.first + 1) || (x == position.first - 1)) && (y - position.second == 1)){

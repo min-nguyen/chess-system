@@ -11,10 +11,16 @@ enum class ClientState{
 };
 
 enum class ServerMessage{
-    NameRequest = '1',
-    ConnectionConfirmed = '2',
-    NewHostRoom = '3',
-    GameEstablished = '4'
+    NameRequest = '0',
+    ConnectionConfirmed = '1',
+    NewHostRoom = '2',
+    GameEstablished = '3'
+};
+
+enum class ClientMessage{
+    NameReceive = '0',
+    RoomRequest = '1',
+    RoomConnect = '2'
 };
 
 class Client {
