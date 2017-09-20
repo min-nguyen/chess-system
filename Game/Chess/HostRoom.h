@@ -20,11 +20,13 @@ public:
     void update();
     void insertRoom();
     void deleteRoom();
+    void processInput(sf::Vector2i position);
 protected:
-    // SpriteSheet spriteMaker;
+    SpriteSheet spriteMaker;
     sf::RenderWindow* window;
     sf::Font font;
-    std::vector<sf::Text> tabs;
+    std::vector<sf::Text> widgets;
+    sf::Sprite hostRoomButton;
 private:
     sf::Text title;
     Client client;
