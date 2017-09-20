@@ -35,14 +35,14 @@ void printpeerinfo(struct sockaddr* peer_sockaddr, uint* peer_addrlen){
        ipver = (char*) "IPv4";
 			 port = &(ipv4_socket->sin_port);
 			 inet_ntop(AF_INET, addr, ipstr, INET_ADDRSTRLEN);
-  }
+  	}
 	else { // IPv6
         struct sockaddr_in6 *ipv6_socket = (struct sockaddr_in6 *) peer_sockaddr;
         addr = &(ipv6_socket->sin6_addr);
         ipver = (char*) "IPv6";
 				port = &(ipv6_socket->sin6_port);
 				inet_ntop(AF_INET6, addr, ipstr, INET6_ADDRSTRLEN);
-  }
+  	}
 	std::cout << "IP               IP protocol     Port       Address Length\n";
 	std::cout << ipstr << " " << ipver << "        	 " << port << "  " << peer_addrlen << "\n";
 }

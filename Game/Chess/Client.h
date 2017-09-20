@@ -25,23 +25,26 @@ enum class ClientMessage{
 
 class Client {
 public:
-    Client(): connected(false){
+    Client(): clientState(ClientState::Waiting){
         std::cout << this << "\n" << std::flush;
     };
-    char inBuffer();
-    void outBuffer(char c);
-    bool isEmpty(); 
-    bool isConnected();
     void run();
-    ClientState clientState = ClientState::Waiting;
+    ClientState clientState;
+    //Messages to server - uses string buffer
+    void server_sendName(std::string name);
+    void server_requestRoom();
+    void server_connectRoom(std::string name);
+    //Messages from server
+    void outBuffer(std::string c);
+    bool isEmpty(); 
 private:
-    bool connected;
-    std::vector<int> rooms;
     void clientconnect(struct addrinfo hints, struct addrinfo* res, int& sockfd);
     static void receive_server(int server_sockfd, Client* client);
     static void send_server(int server_sockfd, Client* client);
-    std::queue<char> INbuffer;
-    std::queue<char> OUTbuffer;
+    //Messages towards server
+    std::queue<std::string> INbuffer;
+    //Messages from server
+    std::queue<std::string> OUTbuffer;
 };
 
 #endif
