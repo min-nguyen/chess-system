@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "SpriteSheet.h"
 #include "Client.h"
+#include "Grid.h"
 #include <utility>
 #include <vector>
 #include <string>
@@ -28,8 +29,9 @@ protected:
     std::vector<sf::Text> widgets;
     sf::Sprite hostRoomButton;
 private:
+    Grid grid;
     sf::Text title;
-    Client client;
+    Client& client;
 }; 
 
 class Tab {

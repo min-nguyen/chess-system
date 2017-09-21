@@ -199,6 +199,8 @@ void notifyRoom(std::vector<Player>& players,
 	//Confirm hosting to hoster				
 	send(host.fd, roomClientName.c_str(), 
 		strlen(roomClientName.c_str()) + 1, 0);
+
+	printf("New host room created for fd %d\n", host.fd);
 }
 
 Player findPlayerByName(std::string name, std::vector<Player> players){
@@ -231,8 +233,9 @@ void matchFlag(std::vector<Player>& players, int fd, char* buffer){
 			Player newPlayer(fd, clientName); 
 			players.push_back(newPlayer);
 			//Send connection confirmation
-			//Send Format = 1#<anything>
-			send(fd, "1", strlen("1") + 1, 0);
+			//Send Format = 1#<clientName>
+			std::string response = "1#" + clientName;
+			send(fd, response.c_str() , (int) sizeof(response) + 1, 0);
 		}
 	}
 	//Make a room request
@@ -316,7 +319,7 @@ int main(int argc, char *argv[])
 					FD_SET(client_sockfd, &connections_fd);
 					max_fd = (max_fd < client_sockfd) ? client_sockfd : max_fd;
 					std::string welcomeMessage = "0#Awaiting-Name\n";
-					send(client_sockfd, welcomeMessage.c_str(), sizeof(welcomeMessage.c_str()), 0);
+					send(client_sockfd, welcomeMessage.c_str(), (int) sizeof(welcomeMessage), 0);
 				}
 				else{
 					//Client closed ws
@@ -329,7 +332,6 @@ int main(int argc, char *argv[])
 						matchFlag(players, i, buffer);
 					}
 					memset(buffer, 0, 50*sizeof(char));
-					
 				}
 			}
 		}

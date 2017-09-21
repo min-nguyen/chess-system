@@ -87,12 +87,14 @@ void Grid::drawGrid(){
 }
 
 void Grid::processInput(const sf::Vector2i t_xy){
-   
-    if(gridState == GridState::AwaitingCellSelect){
-        selectCell(t_xy);
-    }
-    else if(gridState == GridState::CellSelected){
-        moveCell(t_xy);
+    //Ensure mouse input within window bounds
+    if((t_xy.x && t_xy.y > 0) && (t_xy.x && t_xy.y < 500) ){
+        if(gridState == GridState::AwaitingCellSelect){
+            selectCell(t_xy);
+        }
+        else if(gridState == GridState::CellSelected){
+            moveCell(t_xy);
+        }
     }
 }
 
@@ -149,30 +151,29 @@ void Grid::selectCell(const sf::Vector2i t_xy){
     else{
         printf("red team selected\n");
     }
-    if((t_xy.x && t_xy.y) > 0){
-        std::pair<int,int> coordinates = std::make_pair(t_xy.x / 50, t_xy.y / 50);
+    std::pair<int,int> coordinates = std::make_pair(t_xy.x / 50, t_xy.y / 50);
 
-        int x = coordinates.first, y = coordinates.second;
-        switch(grid[x][y].second) {
-            case ChessTeam::Empty:
-                printf("Empty cell selected\n");
-                break;
-            case ChessTeam::Blue:
-                if(playerState == PlayerState::Blue){
-                    selectedPiece = &grid[x][y];
-                    gridState = GridState::CellSelected;
-                }
-                break;
-            case ChessTeam::Red:
-                if(playerState == PlayerState::Red){
-                    selectedPiece = &grid[x][y];
-                    gridState = GridState::CellSelected;
-                }
-            break;    
-            default:
-                break;
-        }
+    int x = coordinates.first, y = coordinates.second;
+    switch(grid[x][y].second) {
+        case ChessTeam::Empty:
+            printf("Empty cell selected\n");
+            break;
+        case ChessTeam::Blue:
+            if(playerState == PlayerState::Blue){
+                selectedPiece = &grid[x][y];
+                gridState = GridState::CellSelected;
+            }
+            break;
+        case ChessTeam::Red:
+            if(playerState == PlayerState::Red){
+                selectedPiece = &grid[x][y];
+                gridState = GridState::CellSelected;
+            }
+        break;    
+        default:
+            break;
     }
+    
 }
 
 
