@@ -260,6 +260,7 @@ void matchFlag(std::vector<Player>& players, int fd, char* buffer){
 	else {
 		Player isInGame = findPlayerByFd(fd, players);
 		if(isInGame.fd != -1 && isInGame.opponent_fd != -1){
+			std::cout << "Sending game move " << clientMessage << std::flush;
 			send(isInGame.opponent_fd, clientMessage.c_str(), 
 				strlen(clientMessage.c_str()) + 1, 0);
 		}

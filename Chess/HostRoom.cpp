@@ -23,16 +23,14 @@ void HostRoom::insertRoom(){
 void HostRoom::processInput(sf::Vector2i position){
     if(client.clientState == ClientState::PlayingAsHost && grid.playerState == PlayerState::Blue){
         grid.processInput(position);
-        client.server_message("(" + std::to_string(position.x) 
-                            + "," + std::to_string(position.y) + ")");
+        client.pushGameMove(position);
     }
     else if (client.clientState == ClientState::PlayingAsOpponent && grid.playerState == PlayerState::Red){
         grid.processInput(position);
-        grid.processInput(position);
-        client.server_message("(" + std::to_string(position.x) 
-                            + "," + std::to_string(position.y) + ")");
+        client.pushGameMove(position);
     }
 }
+
 
 void HostRoom::update(){
     //Check if any new rooms
@@ -52,19 +50,16 @@ void HostRoom::update(){
             client.clientState == ClientState::PlayingAsOpponent){
         grid.drawGrid();
         //Get opponent moves
-        if(client.clientState == ClientState::PlayingAsHost && 
-           grid.playerState == PlayerState::Red){
-            std::string move = client.gameMoveUpdate();
-            if(move != ""){
-                std::cout << move << std::flush;
+        if((client.clientState == ClientState::PlayingAsHost && 
+            grid.playerState == PlayerState::Red) || 
+           (client.clientState == ClientState::PlayingAsOpponent && 
+            grid.playerState == PlayerState::Blue)){
+                
+            sf::Vector2i opponentMove = client.gameMoveUpdate();
+            if(opponentMove.x != -1){
+                std::cout << opponentMove.x << "," << opponentMove.y << std::flush;
+                grid.processInput(opponentMove);
             }
-        }
-        else if(client.clientState == ClientState::PlayingAsOpponent && 
-            grid.playerState == PlayerState::Blue){
-             std::string move = client.gameMoveUpdate();
-             if(move != ""){
-                 std::cout << move << std::flush;
-             }
         }
     }
 }

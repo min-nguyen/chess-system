@@ -20,10 +20,6 @@ Grid::Grid(sf::RenderWindow* t_window):
             }
         }
         newBoard();
-
-        // std::array<std::array<std::pair<std::unique_ptr<Chess>, ChessTeam>, 10>, 10> testarray;
-        // std::unique_ptr<Pawn> p(new Pawn(ChessTeam::Red, window, std::make_pair(5, 1)));
-        // testarray[5][5] =  std::make_pair(std::move(p), ChessTeam::Blue);
 }
 
 void Grid::newBoard(){
@@ -88,6 +84,7 @@ void Grid::drawGrid(){
 
 void Grid::processInput(const sf::Vector2i t_xy){
     //Ensure mouse input within window bounds
+    std::cout << " : (" << t_xy.x << "," << t_xy.y << ")" << std::flush;
     if((t_xy.x && t_xy.y > 0) && (t_xy.x && t_xy.y < 500) ){
         if(gridState == GridState::AwaitingCellSelect){
             selectCell(t_xy);
@@ -145,12 +142,7 @@ void Grid::moveCell(const sf::Vector2i t_xy){
 }
 
 void Grid::selectCell(const sf::Vector2i t_xy){
-    if(playerState == PlayerState::Blue){
-        printf("blue team selected\n");
-    }
-    else{
-        printf("red team selected\n");
-    }
+
     std::pair<int,int> coordinates = std::make_pair(t_xy.x / 50, t_xy.y / 50);
 
     int x = coordinates.first, y = coordinates.second;
@@ -160,12 +152,14 @@ void Grid::selectCell(const sf::Vector2i t_xy){
             break;
         case ChessTeam::Blue:
             if(playerState == PlayerState::Blue){
+                printf("blue cell selected\n");
                 selectedPiece = &grid[x][y];
                 gridState = GridState::CellSelected;
             }
             break;
         case ChessTeam::Red:
             if(playerState == PlayerState::Red){
+                printf("red cell selected\n");
                 selectedPiece = &grid[x][y];
                 gridState = GridState::CellSelected;
             }

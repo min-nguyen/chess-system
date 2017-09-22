@@ -55,13 +55,13 @@ void Client::receive_server(int server_sockfd, Client* client){
                   printf("%s\n", buffer);
                   //Request name to be sent
                   if(*flag == '0'){
-                    printf("Write your name in the console\n");
+                    printf("Write your name in the console: #0<name>\n");
                   }
                   //Successful connection after name sent
                   else if(*flag == '1'){
                     if(client->clientState == ClientState::Waiting){
                       std::string clientName = clientMessage.erase(0, 2);
-                      std::cout << "connected\n" << std::flush;
+                      std::cout << "Connected. To host, #1. To join, 2#<hostname>\n" << std::flush;
                       client->clientState = ClientState::Connected;
                       client->clientName = clientName;
                     }
@@ -96,7 +96,9 @@ void Client::receive_server(int server_sockfd, Client* client){
                   }
                   else if((client->clientState == ClientState::PlayingAsHost) ||
                           (client->clientState == ClientState::PlayingAsOpponent)){
-                      client->gameMoves.push(clientMessage);
+                      std::cout << " Received game move " << clientMessage << std::flush;
+                      sf::Vector2i parsedPosition = extractVector2i(clientMessage);
+                      client->gameMovesOut.push(parsedPosition);
                   }
                   memset(buffer, 0, 400*sizeof(char));
                   break;
@@ -104,9 +106,36 @@ void Client::receive_server(int server_sockfd, Client* client){
   }
 }
 
+sf::Vector2i Client::extractVector2i(std::string position){
+  std::string openParen = position.erase(0,1);
+  char arr[20]; 
+  strcpy(arr, openParen.c_str());
+  bool xdone = false;
+  std::string x = "", y = "";
+  for(int i = 0; i < 20; i++){
+    if(xdone){
+      if(arr[i] != ')'){
+        if(isdigit(arr[i]))
+          y += arr[i];
+      }
+      else{
+        sf::Vector2i v(std::stoi(x), std::stoi(y));
+        return v;
+      }
+    }
+    else{
+      if(arr[i] != ','){
+        if(isdigit(arr[i])){
+          x += arr[i];
+        }
+      }
+      else
+        xdone = true;
+    }
+  }
+}
 
-
-void Client::server_message(std::string message){
+void Client::updateState(std::string message){
   if(message.substr(0,2) == "0#"){
     clientName = message.erase(0,2);
     printf("set new name\n");
@@ -119,56 +148,61 @@ void Client::server_message(std::string message){
     clientState = ClientState::PlayAttempt;
     printf("attempting to play\n");
   }
-  
 }
 
-void Client::server_sendName(){
-  std::string name;
-  std::getline(std::cin, name);
-  INbuffer.push("0#" + name);
+bool Client::gameMovesInExists(){
+  return (!gameMovesIn.empty());
+}
+bool Client::gameMovesOutExists(){
+  return (!gameMovesOut.empty());
+}
+void Client::pushGameMove(sf::Vector2i mouse){
+  std::string mouseStr = "(" + std::to_string(mouse.x) + "," + std::to_string(mouse.y) + ")";
+  gameMovesIn.push(mouseStr);
 }
 
-void Client::server_requestRoom(){
-  INbuffer.push("1#");
-  clientState = ClientState::HostAttempt;
-}
-void Client::server_connectRoom(std::string name){
-  INbuffer.push("2#" + name);
-  clientState = ClientState::PlayAttempt;
+void Client::send_server_game(int server_sockfd, Client* client){
+   //Game input
+   printf("Now playing\n");
+   while(1){
+     if(client->gameMovesInExists()){
+       std::string message = client->gameMovesIn.front();
+       std::cout << "Sending " << message << std::flush;
+       client->gameMovesIn.pop();
+       send(server_sockfd, message.c_str(), (int) sizeof(message.c_str()) + 1, 0);
+     }
+   }
 }
 
-void Client::send_server(int server_sockfd, Client* client){
+void Client::send_server_lobby(int server_sockfd, Client* client){
   //Lobby room
   while(client->clientState != ClientState::PlayingAsHost && 
         client->clientState != ClientState::PlayingAsOpponent ){
     std::string message;
     std::getline(std::cin, message);
-    client->server_message(message);
+    client->updateState(message);
     send(server_sockfd, message.c_str(), (int) sizeof(message.c_str()), 0);
-  }
-  //Game input
-  while(1){
-    if(!client->isEmpty()){
-      std::string message = client->INbuffer.front();
-      client->INbuffer.pop();
-      send(server_sockfd, message.c_str(), (int) sizeof(message.c_str()), 0);
+    if(client->clientState == ClientState::HostAttempt ||
+       client->clientState == ClientState::PlayAttempt ){
+         std::thread sender(send_server_game, server_sockfd, client);
+         sender.join();
+         std::terminate();
     }
   }
 }
 
-bool Client::isEmpty(){
-  return INbuffer.empty();
-}
-std::string Client::gameMoveUpdate(){
-  if(gameMoves.empty()){
-    return "";
+sf::Vector2i Client::gameMoveUpdate(){
+  if(gameMovesOut.empty()){
+    sf::Vector2i v(-1, -1);
+    return v;
   }
   else {
-    std::string move = gameMoves.front();
-    gameMoves.pop();
-    return move;
+    sf::Vector2i v = gameMovesOut.front();
+    gameMovesOut.pop();
+    return v;
   }
 }
+
 std::string Client::lobbyRoomUpdate(){
   if(lobbyRooms.empty()){
     return "";
@@ -199,7 +233,7 @@ void Client::run()
   //If a reference argument needs to be passed to the thread function, it has to be wrapped (e.g. with std::ref or std::cref).
 
   std::thread receiver(receive_server, server_sockfd, this);
-  std::thread sender(send_server, server_sockfd, this);
+  std::thread sender(send_server_lobby, server_sockfd, this);
 
   receiver.join();
   sender.join();

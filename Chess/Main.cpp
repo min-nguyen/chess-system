@@ -20,7 +20,7 @@ void createClient(Client& client){
 
 int main(int argc, char* argv[]) {
 
-    sf::RenderWindow window(sf::VideoMode(500, 500), "SFML works!");
+    sf::RenderWindow window(sf::VideoMode(500, 500), "CHESS");
     sf::RenderTexture renderTexture;
     sf::Clock clock;
     sf::Time elapsedTime = clock.restart();
@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
             sf::Event event;
             while (window.pollEvent(event)){
                 if(sf::Mouse::isButtonPressed(sf::Mouse::Left)){
-                    sf::Vector2i position = sf::Mouse::getPosition();
+                    sf::Vector2i position = sf::Mouse::getPosition(window);
                     host.processInput(position);
                 }
                 if(event.type == sf::Event::Closed)

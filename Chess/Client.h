@@ -32,23 +32,24 @@ public:
     std::string clientName;
     ClientState clientState;
     //Messages to server - uses string buffer
-    void server_message(std::string message);
-    void server_sendName();
-    void server_requestRoom();
-    void server_connectRoom(std::string name);
+    void updateState(std::string message);
+    void pushGameMove(sf::Vector2i mousePosition);
     //Messages from server
     std::string lobbyRoomUpdate();  //Returns any new created rooms
-    std::string gameMoveUpdate();
-    bool isEmpty(); 
+    sf::Vector2i gameMoveUpdate();
+    bool gameMovesOutExists(); 
+    bool gameMovesInExists(); 
 private:
     void clientconnect(struct addrinfo hints, struct addrinfo* res, int& sockfd);
+    static sf::Vector2i extractVector2i(std::string position);
     static void receive_server(int server_sockfd, Client* client);
-    static void send_server(int server_sockfd, Client* client);
+    static void send_server_lobby(int server_sockfd, Client* client);
+    static void send_server_game(int server_sockfd, Client* client);
     //Messages towards server
-    std::queue<std::string> INbuffer;
+    std::queue<std::string> gameMovesIn;
     //Messages from server
     std::queue<std::string> lobbyRooms;
-    std::queue<std::string> gameMoves;
+    std::queue<sf::Vector2i> gameMovesOut;
 };
 
 #endif
