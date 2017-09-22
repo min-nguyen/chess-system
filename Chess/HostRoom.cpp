@@ -12,14 +12,6 @@ HostRoom::HostRoom(sf::RenderWindow* t_window, Client& t_client)
     
 }
 
-void HostRoom::deleteRoom(){
-
-}
-
-void HostRoom::insertRoom(){
-    
-}
-
 void HostRoom::processInput(sf::Vector2i position){
     if(client.clientState == ClientState::PlayingAsHost && grid.playerState == PlayerState::Blue){
         grid.processInput(position);
@@ -30,7 +22,6 @@ void HostRoom::processInput(sf::Vector2i position){
         client.pushGameMove(position);
     }
 }
-
 
 void HostRoom::update(){
     //Check if any new rooms

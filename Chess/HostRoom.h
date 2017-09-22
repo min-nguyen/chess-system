@@ -16,11 +16,8 @@
 class HostRoom{
 public: 
     HostRoom(sf::RenderWindow* t_window, Client& t_client);
-    //Generic functions
     void draw();
     void update();
-    void insertRoom();
-    void deleteRoom();
     void processInput(sf::Vector2i position);
 protected:
     SpriteSheet spriteMaker;

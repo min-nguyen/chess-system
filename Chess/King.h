@@ -14,9 +14,10 @@ public:
     King(   const ChessTeam t_team, 
             sf::RenderWindow* t_window,
             std::pair<int, int> t_position);
-
+            
     void draw();
     bool isValid(int x, int y, std::pair<Chess*, ChessTeam>  t);
+
     static std::string getFileName(){
         return "./chessIcons.png";
     };

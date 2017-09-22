@@ -1,18 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <thread>
-#include <map>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <errno.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <iostream>
-#include <vector>
 #include "Client.h"
 
 #define SERVER_PORT "4006"
@@ -35,11 +20,14 @@ void Client::clientconnect(struct addrinfo hints, struct addrinfo* res, int& soc
     exit(EXIT_FAILURE);
   }
 }
+
+
+
 //Send to all non-hosting & non-playing clients
 //Confirm connection = 1#
 //New room = 2#<host-name>#<host-fd>
 //Playing = 3#<otherPlayersName>
-void Client::receive_server(int server_sockfd, Client* client){
+void Client::receive_server_lobby(int server_sockfd, Client* client){
   char buffer[400]; 
   while(1){
   	int n = recv(server_sockfd, buffer, BUF_LEN, 0);
@@ -88,13 +76,37 @@ void Client::receive_server(int server_sockfd, Client* client){
                     if(client->clientState == ClientState::Hosting){
                       std::cout << "Game established as host\n" << std::flush;
                       client->clientState = ClientState::PlayingAsHost;
+                      std::thread receiver(receive_server_game, server_sockfd, client);
+                      receiver.join();
+                      std::terminate();
                     }
                     else if(client->clientState == ClientState::PlayAttempt){
                       std::cout << "Game established as opponent\n" << std::flush;
                       client->clientState = ClientState::PlayingAsOpponent;
+                      std::thread receiver(receive_server_game, server_sockfd, client);
+                      receiver.join();
+                      std::terminate();
                     }
                   }
-                  else if((client->clientState == ClientState::PlayingAsHost) ||
+                  memset(buffer, 0, 400*sizeof(char));
+                  break;
+  	}
+  }
+}
+
+void Client::receive_server_game(int server_sockfd, Client* client){
+  char buffer[400]; 
+  while(1){
+  	int n = recv(server_sockfd, buffer, BUF_LEN, 0);
+  	switch(n){
+  		case (-1) : perror("Client - recv failed\n");
+  								exit(EXIT_FAILURE);
+  								break;
+  	  case (0)	: perror("Client - Server disconnected");
+                  return;
+                  break;
+      default		: std::string clientMessage(buffer);
+                  if((client->clientState == ClientState::PlayingAsHost) ||
                           (client->clientState == ClientState::PlayingAsOpponent)){
                       std::cout << " Received game move " << clientMessage << std::flush;
                       sf::Vector2i parsedPosition = extractVector2i(clientMessage);
@@ -232,7 +244,7 @@ void Client::run()
   //The arguments to the thread function are moved or copied by value.
   //If a reference argument needs to be passed to the thread function, it has to be wrapped (e.g. with std::ref or std::cref).
 
-  std::thread receiver(receive_server, server_sockfd, this);
+  std::thread receiver(receive_server_lobby, server_sockfd, this);
   std::thread sender(send_server_lobby, server_sockfd, this);
 
   receiver.join();

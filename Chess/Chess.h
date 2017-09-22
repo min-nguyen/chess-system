@@ -24,19 +24,17 @@ public:
             std::map<ChessTeam, std::pair<int, int>> t_spriteXY,
             sf::RenderWindow* window, 
             std::pair<int, int> t_position);
-    //Generic functions
+    //Move to cell col(x) row(y)    
     void move(int x, int y);
-    //Abstract functions
     virtual void draw();
     virtual bool isValid(int x, int y, std::pair<Chess*, ChessTeam> t);
-    //Chess piece properties
+    //Attributes
     std::pair<int, int> position;
     const ChessTeam team;
 protected:
     sf::Sprite icon;
     SpriteSheet spriteMaker;
     sf::RenderWindow* window;
-
 private:
 }; 
 

@@ -14,7 +14,6 @@ public:
     Castle(   const ChessTeam t_team, 
             sf::RenderWindow* t_window,
             std::pair<int, int> t_position);
-
     void draw() override;
     bool isValid(int x, int y, std::pair<Chess*, ChessTeam> t) override;
     static std::string getFileName(){

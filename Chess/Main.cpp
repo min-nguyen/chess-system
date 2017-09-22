@@ -33,20 +33,20 @@ int main(int argc, char* argv[]) {
 
     while (window.isOpen())
     {   
-            clock.restart();
-            sf::Event event;
-            while (window.pollEvent(event)){
-                if(sf::Mouse::isButtonPressed(sf::Mouse::Left)){
-                    sf::Vector2i position = sf::Mouse::getPosition(window);
-                    host.processInput(position);
-                }
-                if(event.type == sf::Event::Closed)
-                    window.close();
+        clock.restart();
+        sf::Event event;
+        while (window.pollEvent(event)){
+            if(sf::Mouse::isButtonPressed(sf::Mouse::Left)){
+                sf::Vector2i position = sf::Mouse::getPosition(window);
+                host.processInput(position);
             }
-            host.update();
-            host.draw();
-            window.display();
-            window.clear();
+            if(event.type == sf::Event::Closed)
+                window.close();
+        }
+        host.update();
+        host.draw();
+        window.display();
+        window.clear();
     }
 
     return 0;
