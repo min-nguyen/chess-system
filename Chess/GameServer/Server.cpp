@@ -4,13 +4,13 @@
 #define BACKLOG 10
 #define BUF_LEN (2 << 16)
 
-void printhostname(){
+void printHostName(){
 	char hostname[20];
 	gethostname(hostname, 20);
 	printf("Host name : %s\n\n", hostname);
 }
 
-void printpeerinfo(struct sockaddr* peer_sockaddr, uint* peer_addrlen){
+void printPeerInfo(struct sockaddr* peer_sockaddr, uint* peer_addrlen){
 	void *addr, *port;
 	char* ipver;
 	char ipstr[INET6_ADDRSTRLEN];
@@ -36,7 +36,7 @@ void printpeerinfo(struct sockaddr* peer_sockaddr, uint* peer_addrlen){
 
 
 //Create addrinfo and initialise 'res' and bind 'sockfd_listener'
-int initialiselistener(struct addrinfo hints, struct addrinfo* res, int* sockfd_listener){
+int initialiseListener(struct addrinfo hints, struct addrinfo* res, int* sockfd_listener){
 	int err_status, optval = 1;
 	//Set res to point to server addrinfo
 	if ((err_status = getaddrinfo(NULL, MY_PORT, &hints, &res ) != 0)) {
@@ -58,7 +58,7 @@ int initialiselistener(struct addrinfo hints, struct addrinfo* res, int* sockfd_
 	return 1;
 }
 
-int receive_client(int client_sockfd, char* buffer){
+int receiveClient(int client_sockfd, char* buffer){
 	int n = recv(client_sockfd, buffer, BUF_LEN, 0);
 	switch(n){
 		case (-1) : perror("Server - recv failed\n");
@@ -70,7 +70,7 @@ int receive_client(int client_sockfd, char* buffer){
 }
 
 //Pass everything by reference
-void accept_client(	int* client_sockfd,
+void acceptClient(	int* client_sockfd,
 					int* server_sockfd,
 					struct sockaddr_storage* client_addresses,
 					socklen_t* addr_size){
@@ -79,37 +79,6 @@ void accept_client(	int* client_sockfd,
 		exit(EXIT_FAILURE);
 	}
 	std::cout << "New client connected with sockfd " << *client_sockfd << "\n";
-}
-
-void request_clientname(std::map<int, std::string> client_names, 
-						int sockfd_client){
-	send(sockfd_client, "Please enter your name", sizeof("Please enter your name"), 0);
-}
-
-void fd_pair_send(	std::map<int, int>& fd_pairings, 
-					std::map<int, int>& fd_reversed, 
-					int client_fd, 
-					char* mapPtr){
-
-	auto it = fd_pairings.find(client_fd);
-	printf("sending from %d \n", client_fd);
-	for(int i = 0; i < 20; i ++){
-		for (int j = 0; j < 20; j++){
-			printf("%d", *(mapPtr+(i*10)+j)); 
-			std::cout << std::flush;
-		}
-	}
-	if(it != fd_pairings.end()){
-		send(it->second, mapPtr, 400*sizeof(char), 0);
-		printf("sending from %d to %d\n", client_fd, it->second);
-	}
-	else {
-		it = fd_reversed.find(client_fd);
-		if(it != fd_reversed.end()){
-			send(it->second, mapPtr, 400*sizeof(char), 0);
-			printf("sending from %d to %d\n", client_fd, it->second);
-		}
-	}
 }
 
 void gameDisconnect(std::vector<Player>& players, 
@@ -276,13 +245,13 @@ int main(int argc, char *argv[])
 	hints.ai_flags = AI_PASSIVE;     // fill in my IP for me
 
 	// Set up server
-	initialiselistener(hints, addrinfo_server, &sockfd_server);
+	initialiseListener(hints, addrinfo_server, &sockfd_server);
 	FD_ZERO(&connections_fd);
 	FD_ZERO(&reads_fd);
 	// Add server file descriptor to fd set
 	FD_SET(sockfd_server, &connections_fd);
 	max_fd = sockfd_server;
-	printhostname();
+	printHostName();
 
 	// Allocate empty peer fields for temporary storage of connected clients
 	struct sockaddr* 	client_sockaddr = (struct sockaddr*) malloc(sizeof(struct sockaddr));
@@ -302,15 +271,15 @@ int main(int argc, char *argv[])
 			if(FD_ISSET(i, &reads_fd)){
 				//Fd for Server listener receives ws request
 				if (i == sockfd_server){
-					accept_client(&client_sockfd, &sockfd_server, &client_addresses, &addr_size);
+					acceptClient(&client_sockfd, &sockfd_server, &client_addresses, &addr_size);
 					FD_SET(client_sockfd, &connections_fd);
 					max_fd = (max_fd < client_sockfd) ? client_sockfd : max_fd;
-					std::string welcomeMessage = "0#Awaiting-Name\n";
+					std::string welcomeMessage = "0#Awaiting Name\n";
 					send(client_sockfd, welcomeMessage.c_str(), (int) sizeof(welcomeMessage), 0);
 				}
 				else{
 					//Client closed ws
-					if(!receive_client(i, buffer)){
+					if(!receiveClient(i, buffer)){
 						std::cout << "0#Disconnected : " + findPlayerByFd(i, players).name << std::flush;
 						gameDisconnect(players, connections_fd, i);
 					}
