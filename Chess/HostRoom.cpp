@@ -13,11 +13,8 @@ HostRoom::HostRoom(sf::RenderWindow* t_window, Client& t_client)
 }
 
 void HostRoom::processInput(sf::Vector2i position){
-    if(client.clientState == ClientState::PlayingAsHost && grid.playerState == PlayerState::Blue){
-        grid.processInput(position);
-        client.pushGameMove(position);
-    }
-    else if (client.clientState == ClientState::PlayingAsOpponent && grid.playerState == PlayerState::Red){
+    if((client.clientState == ClientState::PlayingAsHost && grid.playerState == PlayerState::Blue) || 
+       (client.clientState == ClientState::PlayingAsOpponent && grid.playerState == PlayerState::Red)){
         grid.processInput(position);
         client.pushGameMove(position);
     }
